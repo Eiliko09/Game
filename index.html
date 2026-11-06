@@ -537,7 +537,7 @@ $('bUse').onclick=()=>{let b=null,dm=12;guns.forEach(u=>{const d=Math.hypot(u.x-
 const KEY='skigebiet_v1';
 const enc=a=>{const u=new Uint8Array(a.buffer,a.byteOffset,a.byteLength);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
 const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer)};
-function save(quiet){try{const sp16=new Int16Array(V*V),h16=new Int16Array(V*V),s8=new Uint8Array(V*V),g8=new Uint8Array(V*V);for(let i=0;i<V*V;i++){h16[i]=Math.round(H[i]*100);sp16[i]=Math.round(SP[i]*100);s8[i]=Math.round(SN[i]*255);g8[i]=Math.round(GR[i]*255)}
+function save(quiet){if(typeof started!=='undefined'&&!started)return;try{const sp16=new Int16Array(V*V),h16=new Int16Array(V*V),s8=new Uint8Array(V*V),g8=new Uint8Array(V*V);for(let i=0;i<V*V;i++){h16[i]=Math.round(H[i]*100);sp16[i]=Math.round(SP[i]*100);s8[i]=Math.round(SN[i]*255);g8[i]=Math.round(GR[i]*255)}
  localStorage.setItem(KEY,JSON.stringify({ver:2,money,day,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),tanks:tanks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon?1:0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z])}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
 function load(){try{const j=localStorage.getItem(KEY);if(!j)return;const d=JSON.parse(j);loading=true;
  const kk=d.K?dec(d.K,Uint8Array):null,h=dec(d.H,Int16Array),s=dec(d.S,Uint8Array),r=dec(d.R,Uint8Array),p=dec(d.I,Uint8Array);
@@ -548,8 +548,10 @@ function load(){try{const j=localStorage.getItem(KEY);if(!j)return;const d=JSON.
  d.rests.forEach(a=>addRest({x:a[0],z:a[1]}));(d.lamps||[]).forEach(a=>addLamp({x:a[0],z:a[1]}));
  d.lifts.forEach(a=>{liftA=null;addLift(new THREE.Vector3(a[0],0,a[1]));addLift(new THREE.Vector3(a[2],0,a[3]),a[4])});(d.decos||[]).forEach(a=>{decoT=a[0];addDeco({x:a[1],z:a[2]})});decoT='tree';
  (d.roads||[]).forEach(a=>{roadA=null;addRoad({x:a[0],z:a[1],clone(){return this}});addRoad({x:a[2],z:a[3]})});(d.alms||[]).forEach(a=>addAlm({x:a[0],z:a[1]}));
- money=d.money;day=d.day;Object.assign(G,d.G);if(d.F)for(const k in d.F)if(FL[k])FL[k]={x:d.F[k][0],z:d.F[k][1],yaw:d.F[k][2],fuel:d.F[k][3]};dirtyG=dirtyC=true;loading=false;toast('Spielstand geladen')}catch(e){loading=false}}
+ money=d.money;day=d.day;Object.assign(G,d.G);if(d.F)for(const k in d.F)if(FL[k])FL[k]={x:d.F[k][0],z:d.F[k][1],yaw:d.F[k][2],fuel:d.F[k][3]};dirtyG=dirtyC=true;loading=false;toast('Spielstand geladen')}catch(e){loading=false;console.error('Laden fehlgeschlagen',e);try{const bad=localStorage.getItem(KEY);if(bad){localStorage.setItem(KEY+'_defekt',bad);localStorage.removeItem(KEY)}}catch(_){}if(!sessionStorage.getItem('sk_reload')){sessionStorage.setItem('sk_reload','1');location.reload();throw new Error('reload')}}}
 $('bSave').onclick=()=>save(false);setInterval(()=>save(true),30000);document.addEventListener('visibilitychange',()=>{if(document.hidden)save(true)});addEventListener('pagehide',()=>save(true));
-load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();
+if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}}
+let started=false;
+try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e)}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
 </script></body></html>
