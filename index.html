@@ -605,17 +605,18 @@ function addLift(p,gon){if(!liftA){liftA=p.clone();liftMark=bm(new THREE.SphereG
 const wp=(al,lat,y)=>new THREE.Vector3(A.x+ux*al+rxv*lat,y,A.z+uz*al+rzv*lat);
 const yAt=al=>ya+(yb-ya)*cl(al/LH,0,1);
 const PYL=[];
-if(gon){const CLR=11,nP=Math.max(2,Math.round(LH/55)),gnd=al=>hAt(a.x+ux*al,a.z+uz*al);
- const ctrl=[{al:0,y:ya,f:1}];
- for(let k=1;k<=nP;k++){const al=LH*k/(nP+1);let g=-1e9;for(let q=-8;q<=8;q+=4)g=Math.max(g,gnd(cl(al+q,0,LH)));ctrl.push({al,y:Math.max(yAt(al),g+CLR),f:0})}
- ctrl.push({al:LH,y:yb,f:1});
- const need=al=>Math.min(CLR,3+.5*Math.min(al,LH-al));
- for(let it=0;it<30;it++){let ch=false;
-  for(let i=0;i<ctrl.length-1;i++){const p0=ctrl[i],p1=ctrl[i+1];let df=0;
+if(gon){const CLR=11,HL=Math.min(23,LH/2),gnd=al=>hAt(a.x+ux*al,a.z+uz*al),span=LH-2*(HL+5),nP=span>=15?Math.max(1,Math.round(span/55)):0;
+ // Seil laeuft durch die ganze Halle (bis HL m) waagerecht auf Stationshoehe, danach steigt es mit Mass zu den Stuetzen
+ const ctrl=[{al:0,y:ya,f:1},{al:HL,y:ya,f:1,hall:1}];
+ for(let k=1;k<=nP;k++){const al=HL+5+span*k/(nP+1);let g=-1e9;for(let q=-8;q<=8;q+=4)g=Math.max(g,gnd(cl(al+q,0,LH)));ctrl.push({al,y:Math.max(yAt(al),g+CLR),f:0})}
+ ctrl.push({al:LH-HL,y:yb,f:1,hall:1},{al:LH,y:yb,f:1});
+ const need=al=>Math.min(CLR,3+.5*Math.max(0,Math.min(al,LH-al)-HL));
+ for(let it=0;it<40;it++){let ch=false;
+  for(let i=0;i<ctrl.length-1;i++){const p0=ctrl[i],p1=ctrl[i+1];if(p0.f&&p1.f)continue;let df=0;
    for(let q=0;q<=10;q++){const al=p0.al+(p1.al-p0.al)*q/10,cy=p0.y+(p1.y-p0.y)*q/10;df=Math.max(df,gnd(al)+need(al)-cy)}
    if(df>.05){if(!p0.f)p0.y+=df;if(!p1.f)p1.y+=df;ch=true}}
   if(!ch)break}
- ctrl.slice(1,-1).forEach(q=>PYL.push({al:q.al,y:q.y}))}
+ ctrl.slice(1,-1).forEach(q=>PYL.push({al:q.al,y:q.y,hall:q.hall}))}
 else for(let k=1;k<5;k++){const al=LH*k/5;PYL.push({al,y:yAt(al)})}
 const P=[];
 if(gon){const cA=-ZB,cB=LH+ZB;
@@ -629,7 +630,7 @@ const LP={pts:P,cum,tot:cum[cum.length-1]};
 const cm2=new THREE.MeshBasicMaterial({color:0x202428,transparent:true,opacity:.4});
 for(let i=1;i<P.length;i++){const p0=P[i-1],p1=P[i],len=p0.distanceTo(p1);if(len<.01)continue;
  const seg=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,len,4).rotateX(Math.PI/2),cm2);seg.position.copy(p0).lerp(p1,.5);seg.lookAt(p1);scene.add(seg)}
- for(const pp of PYL){const f=pp.al/LH,x=a.x+(b.x-a.x)*f,z=a.z+(b.z-a.z)*f,gy=hAt(x,z)-(gon?1.5:0),ly=pp.y,h=ly-gy;
+ for(const pp of PYL){if(pp.hall)continue;const f=pp.al/LH,x=a.x+(b.x-a.x)*f,z=a.z+(b.z-a.z)*f,gy=hAt(x,z)-(gon?1.5:0),ly=pp.y,h=ly-gy;
   const p2=new THREE.Group(),cm=new THREE.MeshStandardMaterial({color:0xa9aca6,roughness:.85}),sheave=new THREE.MeshStandardMaterial({color:0x3a3f46,metalness:.5,roughness:.4});p2.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);const pil=new THREE.Mesh(new THREE.CylinderGeometry(.42,.55,h,10).translate(0,h/2,0),cm);pil.castShadow=true;p2.add(pil);const arm=new THREE.Mesh(new THREE.BoxGeometry(4.6,.35,.5).translate(0,h-.3,0),cm);arm.castShadow=true;p2.add(arm);for(const sx of[-1.6,1.6]){p2.add(new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.4,10).rotateX(Math.PI/2).translate(sx,h+.05,0),sheave))}p2.position.set(x,gy,z);scene.add(p2);rc(x,z,.6)}
  const cabs=(gon?[0,.25,.5,.75]:[0,.5]).map(o=>{const m=new THREE.Group();if(gon){m.add(bm(new THREE.BoxGeometry(.12,.9,.12).translate(0,-.45,0),0x3b3f46),bm(new THREE.BoxGeometry(2.4,.2,2.4).translate(0,-1.0,0),0x2a2d33),bm(new THREE.BoxGeometry(2.6,2.2,2.6).translate(0,-2.0,0),0xd8322a),new THREE.Mesh(new THREE.BoxGeometry(2.64,1.1,2.64).translate(0,-1.45,0),new THREE.MeshStandardMaterial({color:0x9fd3ef,transparent:true,opacity:.35,roughness:.1,metalness:.2})))}else{m.add(bm(new THREE.BoxGeometry(.12,.7,.12).translate(0,-.35,0),0x3b3f46),bm(new THREE.BoxGeometry(1.8,.5,1.8).translate(0,-.95,0),0xe03a2a),new THREE.Mesh(new THREE.BoxGeometry(1.5,.4,1.5).translate(0,-.75,0),new THREE.MeshStandardMaterial({color:0x9fd3ef,transparent:true,opacity:.35})))}scene.add(m);return {m,t:o}});
  {const Lx=(b.x-a.x)/L,Lz=(b.z-a.z)/L;[[A,Lx,Lz],[B,-Lx,-Lz]].forEach(([v,ux,uz])=>{const gt=new THREE.Group();gt.add(bm(new THREE.BoxGeometry(.25,1.6,.25).translate(-1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(.25,1.6,.25).translate(1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(2.4,.12,.12).translate(0,1.2,0),0xe03a2a));const gd=gon?24:8.6;gt.position.set(v.x+ux*gd,hAt(v.x+ux*gd,v.z+uz*gd),v.z+uz*gd);gt.rotation.y=Math.atan2(ux,uz);scene.add(gt)})}
