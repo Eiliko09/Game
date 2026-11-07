@@ -80,6 +80,7 @@ addEventListener('resize',resize);resize();
 // ---------- Gelände ----------
 const N=300,S=1200,C=S/N,V=N+1;
 const PK=[[0,-180,200,230,190],[-320,-60,150,190,140],[330,-120,160,200,150],[-120,-450,170,150,130],[200,-480,150,150,110],[0,150,170,120,45]];
+const stZones=[];
 const SP=new Float32Array(V*V),QH=new Float32Array(V*V),H=new Float32Array(V*V),SN=new Float32Array(V*V),GR=new Float32Array(V*V),PI=new Uint8Array(V*V),PC=new Uint8Array(V*V),FZ=new Uint8Array(V*V);
 for(let iz=0;iz<V;iz++)for(let ix=0;ix<V;ix++){const x=ix*C-S/2,z=iz*C-S/2,i=iz*V+ix;
  let hh=2+4*Math.sin(x*.012)*Math.cos(z*.017)+2*Math.sin(x*.043+z*.031)+Math.sin(x*.11+z*.09);
@@ -93,7 +94,7 @@ const nor=new Float32Array(V*V*3);geo.setAttribute('normal',new THREE.BufferAttr
 const uv=new Float32Array(V*V*2);for(let i=0;i<V*V;i++){uv[2*i]=(i%V)*C/14;uv[2*i+1]=((i/V)|0)*C/14}geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));
 const nt=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d'),d=x.createImageData(256,256);for(let i=0;i<65536;i++){const v=215+Math.random()*40;d.data[4*i]=v;d.data[4*i+1]=v;d.data[4*i+2]=v;d.data[4*i+3]=255}x.putImageData(d,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return t})();
 const terrain=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,map:nt,roughness:.92,metalness:0}));terrain.receiveShadow=true;terrain.frustumCulled=false;scene.add(terrain);
-function syncPos(){for(let i=0;i<V*V;i++)QH[i]=H[i]+SP[i];for(let i=0;i<V*V;i++){pos[3*i]=(i%V)*C-S/2;pos[3*i+1]=QH[i];pos[3*i+2]=((i/V)|0)*C-S/2}
+function syncPos(){for(const z of stZones)padEach(z,(i,t)=>{SP[i]*=1-t});for(let i=0;i<V*V;i++)QH[i]=H[i]+SP[i];for(let i=0;i<V*V;i++){pos[3*i]=(i%V)*C-S/2;pos[3*i+1]=QH[i];pos[3*i+2]=((i/V)|0)*C-S/2}
  for(let i=0;i<V*V;i++){const ix=i%V,iz=(i/V)|0,a=ix>0?QH[i-1]:QH[i],b=ix<N?QH[i+1]:QH[i],c=iz>0?QH[i-V]:QH[i],d=iz<N?QH[i+V]:QH[i],nx=a-b,nz=c-d,l=Math.hypot(nx,2*C,nz);nor[3*i]=nx/l;nor[3*i+1]=2*C/l;nor[3*i+2]=nz/l}
  geo.attributes.position.needsUpdate=geo.attributes.normal.needsUpdate=true}
 // ---------- Pistenstreifen (auch mit Kurven) ----------
@@ -538,13 +539,22 @@ function addPark(p){if(!spend(8000))return;const cx=((p.x+S/2)/C)|0,cz=((p.z+S/2
  const wm=new THREE.MeshBasicMaterial({color:0xf0f0f0});
  for(let k=-4;k<=4;k++){const ln=new THREE.Mesh(new THREE.PlaneGeometry(.2,6).rotateX(-Math.PI/2),wm);ln.position.set(k*2,h+.3,-2.5);m.add(ln)}
  m.position.set(p.x,0,p.z);scene.add(m);parks.push({x:p.x,z:p.z});dirtyG=true;toast('Parkplatz gebaut – Gäste können kommen')}
-function stationBuild(v,dx,dz){const h=hAt(v.x,v.z),gp=new THREE.Group(),L=Math.hypot(dx,dz)||1;
+function padEach(z,fn){const cx=Math.round((z.x+S/2)/C),cz=Math.round((z.z+S/2)/C);
+ for(let dz=-9;dz<=9;dz++)for(let dx=-9;dx<=9;dx++){const ix=cx+dx,iz=cz+dz;if(ix<0||iz<0||ix>N||iz>N)continue;
+  const wx=ix*C-S/2-z.x,wz=iz*C-S/2-z.z,lx=wx*z.uz-wz*z.ux,lz=wx*z.ux+wz*z.uz,ex=Math.max(Math.abs(lx)-9.8,0),ez=Math.max(Math.abs(lz-1)-10.8,0),d=Math.hypot(ex,ez);
+  let t=d<=0?1:d>=10?0:1-d/10;t=t*t*(3-2*t);if(t>0)fn(iz*V+ix,t)}}
+function levelStation(v,o){const L=Math.hypot(o.x-v.x,o.z-v.z)||1,z={x:v.x,z:v.z,ux:(o.x-v.x)/L,uz:(o.z-v.z)/L,h:0};
+ let s=0,n=0;padEach(z,(i,t)=>{if(t>=1){s+=H[i];n++}});z.h=n?s/n:hAt(v.x,v.z);
+ padEach(z,(i,t)=>{H[i]=H[i]*(1-t)+z.h*t;SP[i]*=1-t});stZones.push(z);dirtyG=true;return z}
+function stationBuild(v,dx,dz){const zn=stZones.find(q=>q.x===v.x&&q.z===v.z),h=zn?zn.h+.02:hAt(v.x,v.z),gp=new THREE.Group(),L=Math.hypot(dx,dz)||1;
  const mat=(c,r)=>new THREE.MeshStandardMaterial({color:c,roughness:r===undefined?.8:r}),
   conc=mat(0xc9c4ba,.9),grey=mat(0x6b6862,.85),org=mat(0xe8701e,.5),dark=mat(0x2a2e33,.6),
   gl=new THREE.MeshStandardMaterial({color:0x9fd3ef,roughness:.1,metalness:.3,transparent:true,opacity:.42});
  const add=(geo,mt,x,y,z)=>{const m=new THREE.Mesh(geo,mt);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;gp.add(m);return m};
  const rr=(x0,x1,y0,y1,r)=>{const s=new THREE.Shape();s.moveTo(x0+r,y0);s.lineTo(x1-r,y0);s.quadraticCurveTo(x1,y0,x1,y0+r);s.lineTo(x1,y1-r);s.quadraticCurveTo(x1,y1,x1-r,y1);s.lineTo(x0+r,y1);s.quadraticCurveTo(x0,y1,x0,y1-r);s.lineTo(x0,y0+r);s.quadraticCurveTo(x0,y0,x0+r,y0);return s};
  const slab=(shape,hgt,bev)=>new THREE.ExtrudeGeometry(shape,{depth:hgt,bevelEnabled:true,bevelThickness:bev,bevelSize:bev,bevelSegments:3,curveSegments:10}).rotateX(-Math.PI/2);
+ // Betonsockel: Station steht immer plan auf dem Boden
+ add(new THREE.BoxGeometry(19.6,3,21.6),grey,0,-1.4,1);
  // Abgerundetes Hauptvolumen (Halle hinten); Form y = -z
  add(slab(rr(-6.2,6.2,-3,9,2.6),9.5,.35),conc,0,0,0);
  // Vorderfront mit zwei Durchfahrten (je 2,4 m), Säule in der Mitte
@@ -604,24 +614,38 @@ let liftA=null,liftMark=null;
 function addLift(p,gon){if(!liftA){liftA=p.clone();liftMark=bm(new THREE.SphereGeometry(1.5),0xff3030);liftMark.position.copy(p);scene.add(liftMark);toast('Talstation gesetzt – jetzt Bergstation antippen');return}
  const a=liftA,b=p;if(Math.hypot(a.x-b.x,a.z-b.z)<40){toast('Lift zu kurz (min. 40 m)');return}
  const Lh=Math.hypot(a.x-b.x,a.z-b.z);if(!spend(Math.round(gon?15000+Lh*80:5000+Lh*40)))return;scene.remove(liftMark);liftA=null;
+ if(gon){levelStation(a,b);levelStation(b,a)}
  const ya=hAt(a.x,a.z)+(gon?4:7),yb=hAt(b.x,b.z)+(gon?4:7),A=new THREE.Vector3(a.x,ya,a.z),B=new THREE.Vector3(b.x,yb,b.z),L=A.distanceTo(B);
  [A,B].forEach(v=>{const s=bm(new THREE.BoxGeometry(4,6,4).translate(0,-3.5,0),0xd9dde2);s.position.copy(v);scene.add(s);rb(v.x-2.3,v.x+2.3,v.z-2.3,v.z+2.3)});
  const LH=Math.hypot(B.x-A.x,B.z-A.z)||1,ux=(B.x-A.x)/LH,uz=(B.z-A.z)/LH,rxv=-uz,rzv=ux,Wd=1.6,ZB=gon?6.5:0;
 const wp=(al,lat,y)=>new THREE.Vector3(A.x+ux*al+rxv*lat,y,A.z+uz*al+rzv*lat);
 const yAt=al=>ya+(yb-ya)*cl(al/LH,0,1);
+const PYL=[];
+if(gon){const CLR=11,nP=Math.max(2,Math.round(LH/55)),gnd=al=>hAt(a.x+ux*al,a.z+uz*al);
+ const ctrl=[{al:0,y:ya,f:1}];
+ for(let k=1;k<=nP;k++){const al=LH*k/(nP+1);let g=-1e9;for(let q=-8;q<=8;q+=4)g=Math.max(g,gnd(cl(al+q,0,LH)));ctrl.push({al,y:Math.max(yAt(al),g+CLR),f:0})}
+ ctrl.push({al:LH,y:yb,f:1});
+ const need=al=>Math.min(CLR,3+.5*Math.min(al,LH-al));
+ for(let it=0;it<30;it++){let ch=false;
+  for(let i=0;i<ctrl.length-1;i++){const p0=ctrl[i],p1=ctrl[i+1];let df=0;
+   for(let q=0;q<=10;q++){const al=p0.al+(p1.al-p0.al)*q/10,cy=p0.y+(p1.y-p0.y)*q/10;df=Math.max(df,gnd(al)+need(al)-cy)}
+   if(df>.05){if(!p0.f)p0.y+=df;if(!p1.f)p1.y+=df;ch=true}}
+  if(!ch)break}
+ ctrl.slice(1,-1).forEach(q=>PYL.push({al:q.al,y:q.y}))}
+else for(let k=1;k<5;k++){const al=LH*k/5;PYL.push({al,y:yAt(al)})}
 const P=[];
 if(gon){const cA=-ZB,cB=LH+ZB;
  for(let i=0;i<=8;i++){const ph=-Math.PI/2+Math.PI*i/8;P.push(wp(cA-Wd*Math.cos(ph),Wd*Math.sin(ph),ya))}
- P.push(wp(cA,Wd,yAt(cA)),wp(cB,Wd,yAt(cB)));
+ P.push(wp(cA,Wd,yAt(cA)));PYL.forEach(q=>P.push(wp(q.al,Wd,q.y)));P.push(wp(cB,Wd,yAt(cB)));
  for(let i=0;i<=8;i++){const ph=Math.PI/2-Math.PI*i/8;P.push(wp(cB+Wd*Math.cos(ph),Wd*Math.sin(ph),yb))}
- P.push(wp(cB,-Wd,yAt(cB)),wp(cA,-Wd,yAt(cA)),P[0].clone());
+ P.push(wp(cB,-Wd,yAt(cB)));for(let q=PYL.length-1;q>=0;q--)P.push(wp(PYL[q].al,-Wd,PYL[q].y));P.push(wp(cA,-Wd,yAt(cA)),P[0].clone());
 }else{P.push(A.clone(),B.clone(),A.clone())}
 const cum=[0];for(let i=1;i<P.length;i++)cum.push(cum[i-1]+P[i].distanceTo(P[i-1]));
 const LP={pts:P,cum,tot:cum[cum.length-1]};
 const cm2=new THREE.MeshBasicMaterial({color:0x202428,transparent:true,opacity:.4});
 for(let i=1;i<P.length;i++){const p0=P[i-1],p1=P[i],len=p0.distanceTo(p1);if(len<.01)continue;
  const seg=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,len,4).rotateX(Math.PI/2),cm2);seg.position.copy(p0).lerp(p1,.5);seg.lookAt(p1);scene.add(seg)}
- for(let k=1;k<5;k++){const f=k/5,x=a.x+(b.x-a.x)*f,z=a.z+(b.z-a.z)*f,gy=hAt(x,z),ly=ya+(yb-ya)*f,h=ly-gy;
+ for(const pp of PYL){const f=pp.al/LH,x=a.x+(b.x-a.x)*f,z=a.z+(b.z-a.z)*f,gy=hAt(x,z)-(gon?1.5:0),ly=pp.y,h=ly-gy;
   const p2=new THREE.Group(),cm=new THREE.MeshStandardMaterial({color:0xa9aca6,roughness:.85}),sheave=new THREE.MeshStandardMaterial({color:0x3a3f46,metalness:.5,roughness:.4});p2.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);const pil=new THREE.Mesh(new THREE.CylinderGeometry(.42,.55,h,10).translate(0,h/2,0),cm);pil.castShadow=true;p2.add(pil);const arm=new THREE.Mesh(new THREE.BoxGeometry(4.6,.35,.5).translate(0,h-.3,0),cm);arm.castShadow=true;p2.add(arm);for(const sx of[-1.6,1.6]){p2.add(new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.4,10).rotateX(Math.PI/2).translate(sx,h+.05,0),sheave))}p2.position.set(x,gy,z);scene.add(p2);rc(x,z,.6)}
  const cabs=(gon?[0,.25,.5,.75]:[0,.5]).map(o=>{const m=new THREE.Group();if(gon){m.add(bm(new THREE.BoxGeometry(.12,.9,.12).translate(0,-.45,0),0x3b3f46),bm(new THREE.BoxGeometry(2.4,.2,2.4).translate(0,-1.0,0),0x2a2d33),bm(new THREE.BoxGeometry(2.6,2.2,2.6).translate(0,-2.0,0),0xd8322a),new THREE.Mesh(new THREE.BoxGeometry(2.64,1.1,2.64).translate(0,-1.45,0),new THREE.MeshStandardMaterial({color:0x9fd3ef,transparent:true,opacity:.35,roughness:.1,metalness:.2})))}else{m.add(bm(new THREE.BoxGeometry(.12,.7,.12).translate(0,-.35,0),0x3b3f46),bm(new THREE.BoxGeometry(1.8,.5,1.8).translate(0,-.95,0),0xe03a2a),new THREE.Mesh(new THREE.BoxGeometry(1.5,.4,1.5).translate(0,-.75,0),new THREE.MeshStandardMaterial({color:0x9fd3ef,transparent:true,opacity:.35})))}scene.add(m);return {m,t:o}});
  {const Lx=(b.x-a.x)/L,Lz=(b.z-a.z)/L;[[A,Lx,Lz],[B,-Lx,-Lz]].forEach(([v,ux,uz])=>{const gt=new THREE.Group();gt.add(bm(new THREE.BoxGeometry(.25,1.6,.25).translate(-1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(.25,1.6,.25).translate(1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(2.4,.12,.12).translate(0,1.2,0),0xe03a2a));gt.position.set(v.x+ux*8.6,hAt(v.x,v.z),v.z+uz*8.6);gt.rotation.y=Math.atan2(ux,uz);scene.add(gt)})}
