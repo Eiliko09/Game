@@ -34,7 +34,7 @@ button.on,button.sel{background:var(--ac)}
 <div class="hud"><span class="chip" id="hMoney"></span><span class="chip" id="hDay"></span><span class="chip" id="hSnow"></span><span class="chip" id="hRep"></span><span class="chip" id="hFuel"></span><span class="chip" id="hSpd"></span></div>
 <div id="top"><button id="bFs">⛶</button><button id="bSnd">🔊</button><button id="bSave">💾</button><button id="bBuild">🏗 Bauen</button></div>
 <div id="pc" style="display:none;position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);gap:4px;background:var(--bg);padding:4px;border-radius:12px"><button data-t="close">⛔ Sperren</button><button data-t="open">✅ Öffnen</button><button id="bPDone" style="display:none">✔ Fertig</button><button id="bPDel" style="display:none">🗑 Löschen</button><button id="bPFence" style="display:none">🚧 Zaun</button></div><div id="joy"><div id="knob"></div></div>
-<div id="drive"><div id="gp"><div id="tach"><div id="tachF"></div></div><span class="chip" id="gTxt">Gang 1</span><button id="bGd">−</button><button id="bGu">+</button><button id="bAuto" class="on">⚙ Auto</button></div><button id="bBuro" style="display:none">🖥 Computer benutzen</button><button id="bFuel" style="display:none">⛽ Tanken</button><button id="bUse" style="display:none">🔧 Bedienen</button><button id="bFoot">🚶 Aussteigen</button><button id="bCam">📷 Außen</button><button id="bTill">❄ Fräse aus</button><button id="bBlade">⛏ Schild: oben</button><button id="bVeh">🚜 Fahrzeug</button></div><div id="vm"></div>
+<div id="drive"><button id="bRev">⏪ Rückwärts</button><div id="gp"><div id="tach"><div id="tachF"></div></div><span class="chip" id="gTxt">Gang 1</span><button id="bGd">−</button><button id="bGu">+</button><button id="bAuto" class="on">⚙ Auto</button></div><button id="bBuro" style="display:none">🖥 Computer benutzen</button><button id="bFuel" style="display:none">⛽ Tanken</button><button id="bUse" style="display:none">🔧 Bedienen</button><button id="bFoot">🚶 Aussteigen</button><button id="bCam">📷 Außen</button><button id="bTill">❄ Fräse aus</button><button id="bBlade">⛏ Schild: oben</button><button id="bVeh">🚜 Fahrzeug</button></div><div id="vm"></div>
 <div id="tools"><div id="info"></div><div id="row">
 <button data-t="cam">✋ Bewegen / Kanone an-aus</button>
 <button data-t="up">⛰ Anheben</button><button data-t="down">🕳 Absenken</button>
@@ -537,6 +537,18 @@ function addPark(p){if(!spend(8000))return;const cx=((p.x+S/2)/C)|0,cz=((p.z+S/2
  const wm=new THREE.MeshBasicMaterial({color:0xf0f0f0});
  for(let k=-4;k<=4;k++){const ln=new THREE.Mesh(new THREE.PlaneGeometry(.2,6).rotateX(-Math.PI/2),wm);ln.position.set(k*2,h+.3,-2.5);m.add(ln)}
  m.position.set(p.x,0,p.z);scene.add(m);parks.push({x:p.x,z:p.z});dirtyG=true;toast('Parkplatz gebaut – Gäste können kommen')}
+function stationBuild(v,dx,dz){const h=hAt(v.x,v.z),gp=new THREE.Group();
+ const cc=new THREE.MeshStandardMaterial({color:0xbdb8ae,roughness:.9}),gl=new THREE.MeshStandardMaterial({color:0x2a3238,roughness:.2,metalness:.4,transparent:true,opacity:.85}),gr=new THREE.MeshStandardMaterial({color:0x4f8a3a,roughness:1}),pv=new THREE.MeshStandardMaterial({color:0x8a8a84,roughness:1});
+ const add=(geo,mat,x,y,z,rx)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);if(rx)m.rotation.x=rx;m.castShadow=m.receiveShadow=true;gp.add(m);return m};
+ add(new THREE.BoxGeometry(14,4.5,7),cc,0,2.25,0);
+ add(new THREE.BoxGeometry(13.6,2.6,7.1),gl,0,2.4,0);
+ for(let k=-3;k<=3;k++)add(new THREE.BoxGeometry(.25,2.6,.25),cc,k*2,2.4,3.6);
+ add(new THREE.BoxGeometry(18,1.4,9),cc,-2,5.2,0);
+ add(new THREE.BoxGeometry(18.2,.3,9.2),gr,-2,6.05,0);
+ add(new THREE.BoxGeometry(4,.3,6),pv,0,.2,6.5,-.12);
+ add(new THREE.BoxGeometry(14,.1,9),pv,0,.05,6.5);
+ gp.position.set(v.x,h,v.z);gp.rotation.y=Math.atan2(dx,dz);scene.add(gp);
+ rb(v.x-8,v.x+8,v.z-8,v.z+8)}
 let liftA=null,liftMark=null;
 function addLift(p,gon){if(!liftA){liftA=p.clone();liftMark=bm(new THREE.SphereGeometry(1.5),0xff3030);liftMark.position.copy(p);scene.add(liftMark);toast('Talstation gesetzt – jetzt Bergstation antippen');return}
  const a=liftA,b=p;if(Math.hypot(a.x-b.x,a.z-b.z)<40){toast('Lift zu kurz (min. 40 m)');return}
@@ -545,10 +557,10 @@ function addLift(p,gon){if(!liftA){liftA=p.clone();liftMark=bm(new THREE.SphereG
  [A,B].forEach(v=>{const s=bm(new THREE.BoxGeometry(4,6,4).translate(0,-3.5,0),0xd9dde2);s.position.copy(v);scene.add(s);rb(v.x-2.3,v.x+2.3,v.z-2.3,v.z+2.3)});
  const cab=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,L,4).rotateX(Math.PI/2),new THREE.MeshBasicMaterial({color:0x202428,transparent:true,opacity:.4}));cab.position.copy(A).lerp(B,.5);cab.lookAt(B);scene.add(cab);
  for(let k=1;k<5;k++){const f=k/5,x=a.x+(b.x-a.x)*f,z=a.z+(b.z-a.z)*f,gy=hAt(x,z),ly=ya+(yb-ya)*f,h=ly-gy;
-  const p2=new THREE.Group(),lm=new THREE.MeshStandardMaterial({color:0x9aa3ad,metalness:.6,roughness:.4});for(const [ox,oz] of [[-.45,-.45],[.45,-.45],[-.45,.45],[.45,.45]]){const lg=new THREE.Mesh(new THREE.BoxGeometry(.12,h,.12).translate(0,h/2,0),lm);lg.position.set(ox,0,oz);lg.castShadow=true;p2.add(lg)}for(let yy=1;yy<h;yy+=3){const br=new THREE.Mesh(new THREE.BoxGeometry(.95,.09,.09).translate(0,yy,0),lm);br.position.set(0,0,-.45);p2.add(br);const br2=br.clone();br2.position.set(0,0,.45);p2.add(br2)}const top=new THREE.Mesh(new THREE.BoxGeometry(1.4,.25,1.4).translate(0,h,0),lm);p2.add(top);p2.position.set(x,gy,z);scene.add(p2);rc(x,z,.6)}
+  const p2=new THREE.Group(),cm=new THREE.MeshStandardMaterial({color:0xa9aca6,roughness:.85}),sheave=new THREE.MeshStandardMaterial({color:0x3a3f46,metalness:.5,roughness:.4});p2.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);const pil=new THREE.Mesh(new THREE.CylinderGeometry(.42,.55,h,10).translate(0,h/2,0),cm);pil.castShadow=true;p2.add(pil);const arm=new THREE.Mesh(new THREE.BoxGeometry(4.6,.35,.5).translate(0,h-.3,0),cm);arm.castShadow=true;p2.add(arm);for(const sx of[-1.6,1.6]){p2.add(new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.4,10).rotateX(Math.PI/2).translate(sx,h+.05,0),sheave))}p2.position.set(x,gy,z);scene.add(p2);rc(x,z,.6)}
  const cabs=(gon?[0,.25,.5,.75]:[0,.5]).map(o=>{const m=new THREE.Group();if(gon){m.add(bm(new THREE.BoxGeometry(.12,.9,.12).translate(0,-.45,0),0x3b3f46),bm(new THREE.BoxGeometry(2.4,.2,2.4).translate(0,-1.0,0),0x2a2d33),bm(new THREE.BoxGeometry(2.6,2.2,2.6).translate(0,-2.0,0),0xd8322a),new THREE.Mesh(new THREE.BoxGeometry(2.64,1.1,2.64).translate(0,-1.45,0),new THREE.MeshStandardMaterial({color:0x9fd3ef,transparent:true,opacity:.35,roughness:.1,metalness:.2})))}else{m.add(bm(new THREE.BoxGeometry(.12,.7,.12).translate(0,-.35,0),0x3b3f46),bm(new THREE.BoxGeometry(1.8,.5,1.8).translate(0,-.95,0),0xe03a2a),new THREE.Mesh(new THREE.BoxGeometry(1.5,.4,1.5).translate(0,-.75,0),new THREE.MeshStandardMaterial({color:0x9fd3ef,transparent:true,opacity:.35})))}scene.add(m);return {m,t:o}});
  {const Lx=(b.x-a.x)/L,Lz=(b.z-a.z)/L;[[A,Lx,Lz],[B,-Lx,-Lz]].forEach(([v,ux,uz])=>{const gt=new THREE.Group();gt.add(bm(new THREE.BoxGeometry(.25,1.6,.25).translate(-1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(.25,1.6,.25).translate(1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(2.4,.12,.12).translate(0,1.2,0),0xe03a2a));gt.position.set(v.x+ux*-2.9,hAt(v.x,v.z),v.z+uz*-2.9);gt.rotation.y=Math.atan2(ux,uz);scene.add(gt)})}
- if(gon)[a,b].forEach(v=>{const y=hAt(v.x,v.z),hm=new THREE.Group();hm.add(bm(new THREE.BoxGeometry(8,5,8).translate(0,2.5,0),0xd9dde2),bm(new THREE.BoxGeometry(9,.5,9).translate(0,5.25,0),0x2a4d7a),bm(new THREE.BoxGeometry(5,2,.2).translate(0,3,4.05),0x9fd0ee));hm.position.set(v.x,y,v.z);scene.add(hm);rb(v.x-4.3,v.x+4.3,v.z-4.3,v.z+4.3)});
+ if(gon){const Dx=b.x-a.x,Dz=b.z-a.z;[[a,Dx,Dz],[b,-Dx,-Dz]].forEach(([v,ux,uz])=>stationBuild(v,ux,uz))}
  lifts.push({A,B,cabs,L,cap:gon?120:60,gon:gon?1:0});toast(gon?'Seilbahn gebaut':'Skilift gebaut')}
 const decos=[];let decoT='tree';const DC={tree:100,flag:50,bench:80,man:60,lamp:120};
 function decoMesh(t){const m=new THREE.Group(),W=0xffffff;
@@ -605,7 +617,7 @@ $('bBuild').onclick=()=>{if(mode==='build'){cancelPR();clearSel()}mode=mode==='b
  $('tools').style.display=b?'flex':'none';$('pc').style.display=b?'flex':'none';$('joy').style.display=$('drive').style.display=b?'none':'';
  if(b){bf.set(G.x,0,G.z-20);document.querySelector('[data-t=cam]').click()}};
 const manS=()=>{if(G.auto)$('bAuto').click()};
-$('bGu').onclick=()=>{manS();shiftG(1,1)};$('bGd').onclick=()=>{manS();shiftG(-1,1)};
+$('bGu').onclick=()=>{manS();shiftG(1,1)};$('bGd').onclick=()=>{manS();shiftG(-1,1)};$('bRev').onclick=()=>{G.revReq=!G.revReq;$('bRev').classList.toggle('on',G.revReq);toast(G.revReq?'Rückwärtsgang: bremst und fährt zurück':'Rückwärtsgang aus')};
 $('bAuto').onclick=()=>{G.auto=!G.auto;$('bAuto').textContent=G.auto?'⚙ Auto':'⚙ Manuell';$('bAuto').classList.toggle('on',G.auto)};
 addEventListener('keydown',e=>{if(e.repeat)return;const k=e.key.toLowerCase();if(k==='e'){manS();shiftG(1,1)}if(k==='q'){manS();shiftG(-1,1)}if(k==='g')$('bAuto').click()});
 $('bVeh').onclick=()=>{if(onFoot){toast('Erst einsteigen');return}if(Math.abs(G.v)>2){toast('Erst anhalten');return}const e=$('vm');
@@ -668,7 +680,7 @@ function loop2(now){{const ins=onFoot&&Math.abs(P.x-BUE.x)<6.3&&Math.abs(P.z-BUE
  let wx=0,wy=0;if(onFoot){wx=ix;wy=iy;ix=iy=0}
  {P.yaw-=wx*2.2*dt;const pv=wy*(wy>0?4.5:2);P.x=cl(P.x-Math.sin(P.yaw)*pv*dt,-S/2+6,S/2-6);P.z=cl(P.z-Math.cos(P.yaw)*pv*dt,-S/2+6,S/2-6);push(P,.5);if(onFoot){const dx=P.x-G.x,dz=P.z-G.z,d=Math.hypot(dx,dz);const rr=VEH[G.veh].r-.1;if(d<rr&&d>1e-6){P.x=G.x+dx/d*rr;P.z=G.z+dz/d*rr}}P.y=hAt(P.x,P.z);
   pm.visible=onFoot&&camMode!=='cock';cabIn.visible=!onFoot&&camMode==='cock'&&mode!=='build'&&G.veh==='raupe';for(const q in VG)if(VG[q].rider)VG[q].rider.visible=!onFoot&&camMode!=='cock';wt.rotation.z=-jx*1.2;pm.position.set(P.x,P.y,P.z);pm.rotation.y=P.yaw;const sw=Math.sin(tm*9)*pv*.12;pm.legL.rotation.x=sw;pm.legR.rotation.x=-sw}
- const VH=VEH[G.veh];let thr=0,brk=0;if(G.fuel>0){if(iy>0)thr=iy;else if(iy<0){if(G.v>.6)brk=-iy;else thr=iy}}G.thr=thr;
+ const VH=VEH[G.veh];let thr=0,brk=0;if(G.fuel>0){if(iy>0)thr=iy;else if(iy<0){if(G.v>.6)brk=-iy;else thr=iy}}if(G.revReq&&G.fuel>0){if(iy>.2){G.revReq=false;$('bRev').classList.remove('on')}else if(G.v>.6){thr=0;brk=1.6}else thr=-1}G.thr=thr;
  {const fx_=-Math.sin(G.yaw),fz_=-Math.cos(G.yaw);stepVeh(VH,thr,brk,dt,(hAt(G.x+fx_*3,G.z+fz_*3)-hAt(G.x-fx_*3,G.z-fz_*3))/6)}
  {const rw=Math.abs(G.v)/VH.gm[G.gear-1],tg=G.fuel>0?Math.max(rw,.16+.5*Math.abs(thr)*cl(1-rw*2,0,1)):0;G.rpm+=(tg-G.rpm)*Math.min(1,dt*(tg>G.rpm?9:6));tF_.style.width=Math.round(cl(G.rpm,0,1.05)*95)+'%';tF_.style.background=G.rpm>.9?'#ff5a3c':'#6ddf6d'}
  G.fuel=Math.max(0,G.fuel-dt*(.03+Math.abs(G.v)*.02*VH.fu+(G.tillOn?.05:0)));G.yaw-=ix*VH.turn*dt*(G.v>=0?1:-1)*Math.min(1,Math.abs(G.v)/2+.3)/(1+Math.abs(G.v)*VH.ts);
@@ -752,4 +764,4 @@ if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}
 let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v17</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.1</div></body></html>
