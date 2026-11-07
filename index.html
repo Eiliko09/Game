@@ -37,7 +37,7 @@ button.on,button.sel{background:var(--ac)}
 <div id="tools"><div id="info"></div><div id="row">
 <button data-t="cam">✋ Bewegen / Kanone an-aus</button>
 <button data-t="up">⛰ Anheben</button><button data-t="down">🕳 Absenken</button>
-<button data-t="piste">🎿 Piste markieren</button><button data-t="lift">🚡 Lift ab 7.000</button>
+<button data-t="prect">▭ Pistenstreifen</button><button data-t="piste">🎿 Piste markieren</button><button data-t="lift">🚡 Lift ab 7.000</button>
 <button data-t="rest">🍽 Restaurant 20.000</button><button data-t="gun">🌨 Kanone 3.000</button><button data-t="lamp">💡 Flutlicht 1.500</button>
 <button data-t="pump">💧 Pumpe 8.000</button><button data-t="trafo">⚡ Trafo 6.000</button><button data-t="road">🛣 Straße 60/m</button><button data-t="alm">🏠 Alm 35.000</button><button data-t="tank">⛽ Tankstelle 2.500</button><button data-t="gond">🚠 Seilbahn 15.000+</button><button data-t="deko" data-d="tree">🌲 Tanne</button><button data-t="deko" data-d="flag">🚩 Fahne</button><button data-t="deko" data-d="bench">🪑 Bank</button><button data-t="deko" data-d="man">⛄ Schneemann</button><button data-t="deko" data-d="lamp">🏮 Laterne</button><button data-t="tmove">🔧 Tankstelle versetzen</button><button data-t="jump">🛷 Schanze 2.000</button><button id="bBr">⭕ Pinsel ×1</button></div></div>
 <div id="toast"></div><div id="office" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);background:var(--bg);color:#fff;padding:8px 12px;border-radius:12px;font-size:12px;line-height:1.5;width:230px"></div><div id="sum" style="display:none;position:fixed;inset:0;z-index:8;background:rgba(10,20,35,.8);color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;font-size:15px;line-height:1.6"></div>
@@ -95,6 +95,20 @@ const terrain=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:tr
 function syncPos(){for(let i=0;i<V*V;i++)QH[i]=H[i]+SP[i];for(let i=0;i<V*V;i++){pos[3*i]=(i%V)*C-S/2;pos[3*i+1]=QH[i];pos[3*i+2]=((i/V)|0)*C-S/2}
  for(let i=0;i<V*V;i++){const ix=i%V,iz=(i/V)|0,a=ix>0?QH[i-1]:QH[i],b=ix<N?QH[i+1]:QH[i],c=iz>0?QH[i-V]:QH[i],d=iz<N?QH[i+V]:QH[i],nx=a-b,nz=c-d,l=Math.hypot(nx,2*C,nz);nor[3*i]=nx/l;nor[3*i+1]=2*C/l;nor[3*i+2]=nz/l}
  geo.attributes.position.needsUpdate=geo.attributes.normal.needsUpdate=true}
+// ---------- Pistenstreifen ----------
+const ends=[];let prA=null,prMark=null;
+function cancelPR(){if(prMark){scene.remove(prMark);prMark=null}prA=null}
+function addPRect(p){
+ if(!prA){prA={x:p.x,z:p.z};prMark=bm(new THREE.SphereGeometry(1.5),0x2f8cff);prMark.position.set(p.x,hAt(p.x,p.z)+1.5,p.z);scene.add(prMark);toast('Start gesetzt – jetzt Ende antippen');return}
+ const ax=prA.x,az=prA.z,bx=p.x,bz=p.z,L=Math.hypot(bx-ax,bz-az);
+ if(L<20){toast('Piste zu kurz (min. 20 m)');return}
+ const ux=(bx-ax)/L,uz=(bz-az)/L,hw=10*BS,cells=[];
+ const i0=Math.max(0,Math.floor((Math.min(ax,bx)-hw-C+S/2)/C)),i1=Math.min(N,Math.ceil((Math.max(ax,bx)+hw+C+S/2)/C)),j0=Math.max(0,Math.floor((Math.min(az,bz)-hw-C+S/2)/C)),j1=Math.min(N,Math.ceil((Math.max(az,bz)+hw+C+S/2)/C));
+ for(let jz=j0;jz<=j1;jz++)for(let jx=i0;jx<=i1;jx++){const dx=jx*C-S/2-ax,dz=jz*C-S/2-az,t=dx*ux+dz*uz,sd=-dx*uz+dz*ux;if(t>=0&&t<=L&&Math.abs(sd)<=hw){const i=jz*V+jx;if(!PI[i])cells.push(i)}}
+ if(!cells.length){toast('Hier ist schon alles Piste');cancelPR();return}
+ if(!spend(cells.length*2))return;
+ cells.forEach(i=>PI[i]=1);ends.push({x:ax,z:az,ux:ux,uz:uz,hw:hw},{x:bx,z:bz,ux:ux,uz:uz,hw:hw});
+ cancelPR();dirtyC=true;toast('Pistenstreifen angelegt')}
 // ---------- Pistenzaun ----------
 const fenceMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false});
 const fenceMesh=new THREE.Mesh(new THREE.BufferGeometry(),fenceMat);fenceMesh.frustumCulled=false;scene.add(fenceMesh);
@@ -103,7 +117,8 @@ let fsig=0,fsigLast=-1;
 function buildFence(){const pos=[],colr=[],idx=[],posts=new Map(),M4=new THREE.Matrix4();
  for(let iz=0;iz<V;iz++)for(let ix=0;ix<V;ix++){const i=iz*V+ix;if(!PI[i])continue;const cx=ix*C-S/2,cz=iz*C-S/2,c=PC[i]?[.9,.12,.1]:[1,.5,.08];
   for(let d=0;d<4;d++){const dx=d===0?1:d===1?-1:0,dz=d===2?1:d===3?-1:0,jx=ix+dx,jz=iz+dz;if(jx>=0&&jz>=0&&jx<V&&jz<V&&PI[jz*V+jx])continue;
-   const mx=cx+dx*C/2,mz=cz+dz*C/2,px=-dz*C/2,pz=dx*C/2,ax=mx-px,az=mz-pz,bx=mx+px,bz=mz+pz,ya=hAt(ax,az),yb=hAt(bx,bz),n=pos.length/3;
+   const mx=cx+dx*C/2,mz=cz+dz*C/2;let sk=0;for(const e of ends){const ex=mx-e.x,ez=mz-e.z;if(Math.abs(ex*e.ux+ez*e.uz)<2*C&&Math.abs(-ex*e.uz+ez*e.ux)<e.hw-C*1.2){sk=1;break}}if(sk)continue;
+   const px=-dz*C/2,pz=dx*C/2,ax=mx-px,az=mz-pz,bx=mx+px,bz=mz+pz,ya=hAt(ax,az),yb=hAt(bx,bz),n=pos.length/3;
    pos.push(ax,ya+.15,az,bx,yb+.15,bz,bx,yb+1.15,bz,ax,ya+1.15,az);for(let q=0;q<4;q++)colr.push(c[0],c[1],c[2]);idx.push(n,n+1,n+2,n,n+2,n+3);
    posts.set(Math.round(ax*8)+','+Math.round(az*8),[ax,az,ya]);posts.set(Math.round(bx*8)+','+Math.round(bz*8),[bx,bz,yb])}}
  fenceMesh.geometry.dispose();const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colr,3));g.setIndex(idx);fenceMesh.geometry=g;
@@ -115,7 +130,7 @@ function paint(){fsig=0;for(let i=0;i<V*V;i++){const ix=i%V,iz=(i/V)|0,h=H[i];
  const q=GR[i];if(q>0){sr+=(.92-sr)*q;sg+=(.94-sg)*q;sb+=(.97-sb)*q}
  const sn=Math.min(1,(.55+SN[i]*.75)*(s>.85?.7:1));
  const pl=cl(SP[i]*2,0,1);col[3*i]=(br+(sr-br)*sn)*(1-pl)+.95*pl;col[3*i+1]=(bg+(sg-bg)*sn)*(1-pl)+.97*pl;col[3*i+2]=(bb+(sb-bb)*sn)*(1-pl)+pl;if(PI[i]){if(mode==='build'){const cr=PC[i]?1:.3,cg=PC[i]?.3:.65,cb=PC[i]?.28:1,m=PC[i]?.5:.4;col[3*i]+=(cr-col[3*i])*m;col[3*i+1]+=(cg-col[3*i+1])*m;col[3*i+2]+=(cb-col[3*i+2])*m}fsig+=(i%9973)+1+(PC[i]?50000:0)+Math.round(H[i]*4)}}
- geo.attributes.color.needsUpdate=true;if(fsig!==fsigLast){fsigLast=fsig;buildFence()}}
+ geo.attributes.color.needsUpdate=true;fsig+=ends.length*7919;if(fsig!==fsigLast){fsigLast=fsig;buildFence()}}
 syncPos();paint();
 // ---------- Kollision ----------
 const OB=new Map(),ck=(i,j)=>i*4096+j,cc=v=>Math.floor((v+S/2)/16);
@@ -423,9 +438,9 @@ cv.addEventListener('pointerup',pup);cv.addEventListener('pointercancel',e=>ptrs
 function tap(x,y){const p=pick(x,y);if(!p)return;
  if(tool==='cam'){let b=null,bdist=12;guns.forEach(u=>{const d=Math.hypot(u.x-p.x,u.z-p.z);if(d<bdist){bdist=d;b=u}});
   if(b){b.on=!b.on;b.pts.visible=b.on;toast(b.on?'Schneekanone AN (60 €/Tag)':'Schneekanone aus')}}
- else if(tool==='gun')addGun(p);else if(tool==='lamp')addLamp(p);else if(tool==='rest')addRest(p);else if(tool==='lift')addLift(p);else if(tool==='pump')addPump(p);else if(tool==='trafo')addTrafo(p);else if(tool==='road')addRoad(p);else if(tool==='alm')addAlm(p);else if(tool==='tank')addTank(p);else if(tool==='tmove')moveTank(p);else if(tool==='gond')addLift(p,true);else if(tool==='deko')addDeco(p);else if(tool==='jump')addJump(p);else applyBrush(p,true)}
-const hints={jump:'Schanze: Start antippen, dann Absprungrichtung antippen (8–26 m, 2.000 €). Mit dem Schneeschild wieder wegschiebbar',cam:'Ziehen: Karte verschieben · Zwei Finger: Zoom · Kanone antippen: an/aus',up:'Ziehen: Gelände anheben (6 € pro Schritt)',down:'Ziehen: Gelände absenken (6 € pro Schritt)',piste:'Ziehen: Piste markieren (2 € pro Feld)',lift:'Tal- und Bergstation antippen',rest:'Platz antippen (ebnet Boden ein)',gun:'Braucht Pumpe + Trafo. Wasser- und Stromleitung (25/15 € pro m) werden automatisch gelegt',pump:'Wasserpumpe im Tal setzen (80 €/Tag)',trafo:'Trafostation setzen (60 €/Tag)',road:'Straße: Start an Talstation/Restaurant/Straßenende, dann Ziel antippen',alm:'Alm am Ende einer Straße setzen (max. 30 m Abstand)',tank:'Tankstelle setzen (Tanken: 3 € pro %)',gond:'Tal- und Bergstation antippen (Seilbahn, 120 Gäste)',deko:'Antippen: Deko setzen. Vorhandene Deko antippen: entfernen',tmove:'Tankstelle antippen, dann neuen Platz antippen',close:'Ziehen: Piste sperren (rot, keine Gäste)',open:'Ziehen: gesperrte Piste wieder öffnen',lamp:'Mast antippen: beleuchtet nachts die Piste (1.500 €, 20 €/Tag, Nachtgäste)'};
-document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tool=b.dataset.t;if(b.dataset.d)decoT=b.dataset.d;document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('sel',x===b));$('info').textContent=hints[tool]});
+ else if(tool==='gun')addGun(p);else if(tool==='lamp')addLamp(p);else if(tool==='rest')addRest(p);else if(tool==='lift')addLift(p);else if(tool==='pump')addPump(p);else if(tool==='trafo')addTrafo(p);else if(tool==='road')addRoad(p);else if(tool==='alm')addAlm(p);else if(tool==='tank')addTank(p);else if(tool==='tmove')moveTank(p);else if(tool==='gond')addLift(p,true);else if(tool==='deko')addDeco(p);else if(tool==='jump')addJump(p);else if(tool==='prect')addPRect(p);else applyBrush(p,true)}
+const hints={prect:'Start und Ende antippen: es entsteht ein Pistenstreifen (2 € pro Feld), vorne und hinten offen. Breite = Pinselgröße',jump:'Schanze: Start antippen, dann Absprungrichtung antippen (8–26 m, 2.000 €). Mit dem Schneeschild wieder wegschiebbar',cam:'Ziehen: Karte verschieben · Zwei Finger: Zoom · Kanone antippen: an/aus',up:'Ziehen: Gelände anheben (6 € pro Schritt)',down:'Ziehen: Gelände absenken (6 € pro Schritt)',piste:'Ziehen: Piste markieren (2 € pro Feld)',lift:'Tal- und Bergstation antippen',rest:'Platz antippen (ebnet Boden ein)',gun:'Braucht Pumpe + Trafo. Wasser- und Stromleitung (25/15 € pro m) werden automatisch gelegt',pump:'Wasserpumpe im Tal setzen (80 €/Tag)',trafo:'Trafostation setzen (60 €/Tag)',road:'Straße: Start an Talstation/Restaurant/Straßenende, dann Ziel antippen',alm:'Alm am Ende einer Straße setzen (max. 30 m Abstand)',tank:'Tankstelle setzen (Tanken: 3 € pro %)',gond:'Tal- und Bergstation antippen (Seilbahn, 120 Gäste)',deko:'Antippen: Deko setzen. Vorhandene Deko antippen: entfernen',tmove:'Tankstelle antippen, dann neuen Platz antippen',close:'Ziehen: Piste sperren (rot, keine Gäste)',open:'Ziehen: gesperrte Piste wieder öffnen',lamp:'Mast antippen: beleuchtet nachts die Piste (1.500 €, 20 €/Tag, Nachtgäste)'};
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tool=b.dataset.t;if(tool!=='prect')cancelPR();if(b.dataset.d)decoT=b.dataset.d;document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('sel',x===b));$('info').textContent=hints[tool]});
 $('bBuild').onclick=()=>{mode=mode==='build'?'drive':'build';const b=mode==='build';$('bBuild').textContent=b?'🚜 Fahren':'🏗 Bauen';$('bBuild').classList.toggle('on',b);
  $('tools').style.display=b?'flex':'none';$('pc').style.display=b?'flex':'none';$('joy').style.display=$('drive').style.display=b?'none':'';
  if(b){bf.set(G.x,0,G.z-20);document.querySelector('[data-t=cam]').click()}};
@@ -562,11 +577,11 @@ const KEY='skigebiet_v1';
 const enc=a=>{const u=new Uint8Array(a.buffer,a.byteOffset,a.byteLength);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
 const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer)};
 function save(quiet){if(typeof started!=='undefined'&&!started)return;try{const sp16=new Int16Array(V*V),h16=new Int16Array(V*V),s8=new Uint8Array(V*V),g8=new Uint8Array(V*V);for(let i=0;i<V*V;i++){h16[i]=Math.round(H[i]*100);sp16[i]=Math.round(SP[i]*100);s8[i]=Math.round(SN[i]*255);g8[i]=Math.round(GR[i]*255)}
- localStorage.setItem(KEY,JSON.stringify({ver:2,money,day,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),tanks:tanks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon?1:0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z])}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
+ localStorage.setItem(KEY,JSON.stringify({ver:2,money,day,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),tanks:tanks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon?1:0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z]),ends:ends.map(e=>[e.x,e.z,e.ux,e.uz,e.hw])}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
 function load(){try{const j=localStorage.getItem(KEY);if(!j)return;const d=JSON.parse(j);loading=true;
  const kk=d.K?dec(d.K,Uint8Array):null,h=dec(d.H,Int16Array),s=dec(d.S,Uint8Array),r=dec(d.R,Uint8Array),p=dec(d.I,Uint8Array);
  for(let i=0;i<V*V;i++){H[i]=h[i]/100;SN[i]=s[i]/255;GR[i]=r[i]/255;PI[i]=p[i];PC[i]=kk?kk[i]:0}if(d.ver!==2)for(let iz=0;iz<V;iz++){const b=cl((iz*C-S/2-360)/50,0,1),sb=b*b*(3-2*b);if(sb>0)for(let ix=0;ix<V;ix++){const i=iz*V+ix;H[i]=H[i]*(1-sb)+3*sb}}if(d.SP){const q=dec(d.SP,Int16Array);for(let i=0;i<V*V;i++)SP[i]=q[i]/100}
- (d.pumps||[]).forEach(a=>addPump({x:a[0],z:a[1]}));(d.trafos||[]).forEach(a=>addTrafo({x:a[0],z:a[1]}));
+ (d.ends||[]).forEach(a=>ends.push({x:a[0],z:a[1],ux:a[2],uz:a[3],hw:a[4]}));(d.pumps||[]).forEach(a=>addPump({x:a[0],z:a[1]}));(d.trafos||[]).forEach(a=>addTrafo({x:a[0],z:a[1]}));
  (d.tanks||[]).forEach(a=>addTank({x:a[0],z:a[1]},true));
  d.guns.forEach(a=>{addGun({x:a[0],z:a[1]});if(a[2]){const u=guns[guns.length-1];u.on=true;u.pts.visible=true}});
  d.rests.forEach(a=>addRest({x:a[0],z:a[1]}));(d.lamps||[]).forEach(a=>addLamp({x:a[0],z:a[1]}));
@@ -578,4 +593,4 @@ if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}
 let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v8</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v9</div></body></html>
