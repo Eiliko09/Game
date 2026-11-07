@@ -59,6 +59,7 @@ window.__diagBox=box})();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script>
+let BCAP=null;
 const $=id=>document.getElementById(id),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 const cv=$('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});
 R.setPixelRatio(Math.min(devicePixelRatio,2));R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=.92;
@@ -423,7 +424,6 @@ let loading=false,onFoot=false;const P={x:0,z:0,y:0,yaw:0},pm=new THREE.Group();
  const ht=new THREE.Mesh(new THREE.SphereGeometry(.25,10,8,0,Math.PI*2,0,Math.PI/2),new THREE.MeshStandardMaterial({color:0x2255aa}));ht.position.y=1.98;pm.add(ht)}
 pm.visible=false;scene.add(pm);
 // ---------- Zustand ----------
-let BCAP=null;
 let money=250000,day=1,wood=0,resOpen=false,skiPrice=25,ticketsToday=0,revToday=0,agents=[],spawnAcc=0,pcApp='desk',dayT=112.5,rep='–',mode='drive',camMode='out',tool='cam',lifts=[],rests=[],guns=[],pumps=[],trafos=[],roads=[],alms=[],tanks=[],parks=[];
 const DAY=900;
 const toastEl=$('toast');let tt;function toast(s){toastEl.textContent=s;toastEl.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>toastEl.style.opacity=0,1600)}
