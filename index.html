@@ -34,7 +34,7 @@ button.on,button.sel{background:var(--ac)}
 <div class="hud"><span class="chip" id="hMoney"></span><span class="chip" id="hDay"></span><span class="chip" id="hSnow"></span><span class="chip" id="hRep"></span><span class="chip" id="hFuel"></span><span class="chip" id="hSpd"></span></div>
 <div id="top"><button id="bFs">⛶</button><button id="bSnd">🔊</button><button id="bSave">💾</button><button id="bBuild">🏗 Bauen</button></div>
 <div id="pc" style="display:none;position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);gap:4px;background:var(--bg);padding:4px;border-radius:12px"><button data-t="close">⛔ Sperren</button><button data-t="open">✅ Öffnen</button><button id="bPDone" style="display:none">✔ Fertig</button><button id="bPDel" style="display:none">🗑 Löschen</button><button id="bPFence" style="display:none">🚧 Zaun</button></div><div id="joy"><div id="knob"></div></div>
-<div id="drive"><button id="bRev">⏪ Rückwärts</button><div id="gp"><div id="tach"><div id="tachF"></div></div><span class="chip" id="gTxt">Gang 1</span><button id="bGd">−</button><button id="bGu">+</button><button id="bAuto" class="on">⚙ Auto</button></div><button id="bBuro" style="display:none">🖥 Computer benutzen</button><button id="bFuel" style="display:none">⛽ Tanken</button><button id="bUse" style="display:none">🔧 Bedienen</button><button id="bFoot">🚶 Aussteigen</button><button id="bCam">📷 Außen</button><button id="bTill">❄ Fräse aus</button><button id="bBlade">⛏ Schild: oben</button><button id="bVeh">🚜 Fahrzeug</button></div><div id="vm"></div>
+<div id="drive"><button id="bSw" style="display:none">🔀 Weiche</button><button id="bRev">⏪ Rückwärts</button><div id="gp"><div id="tach"><div id="tachF"></div></div><span class="chip" id="gTxt">Gang 1</span><button id="bGd">−</button><button id="bGu">+</button><button id="bAuto" class="on">⚙ Auto</button></div><button id="bBuro" style="display:none">🖥 Computer benutzen</button><button id="bFuel" style="display:none">⛽ Tanken</button><button id="bUse" style="display:none">🔧 Bedienen</button><button id="bFoot">🚶 Aussteigen</button><button id="bCam">📷 Außen</button><button id="bTill">❄ Fräse aus</button><button id="bBlade">⛏ Schild: oben</button><button id="bVeh">🚜 Fahrzeug</button></div><div id="vm"></div>
 <div id="tools"><div id="info"></div><div id="row">
 <button data-t="cam">✋ Bewegen / Kanone an-aus</button>
 <button data-t="up">⛰ Anheben</button><button data-t="down">🕳 Absenken</button>
@@ -539,43 +539,94 @@ function addPark(p){if(!spend(8000))return;const cx=((p.x+S/2)/C)|0,cz=((p.z+S/2
  for(let k=-4;k<=4;k++){const ln=new THREE.Mesh(new THREE.PlaneGeometry(.2,6).rotateX(-Math.PI/2),wm);ln.position.set(k*2,h+.3,-2.5);m.add(ln)}
  m.position.set(p.x,0,p.z);scene.add(m);parks.push({x:p.x,z:p.z});dirtyG=true;toast('Parkplatz gebaut – Gäste können kommen')}
 function stationBuild(v,dx,dz){const h=hAt(v.x,v.z),gp=new THREE.Group(),L=Math.hypot(dx,dz)||1;
- const grey=new THREE.MeshStandardMaterial({color:0x6b6862,roughness:.85}),conc=new THREE.MeshStandardMaterial({color:0xb4afa6,roughness:.9}),org=new THREE.MeshStandardMaterial({color:0xe8701e,roughness:.5}),gl=new THREE.MeshStandardMaterial({color:0x9fd3ef,roughness:.1,metalness:.3,transparent:true,opacity:.4}),dark=new THREE.MeshStandardMaterial({color:0x2a2e33,roughness:.6});
- const add=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;gp.add(m);return m};
- add(new THREE.BoxGeometry(16,4.6,10),grey,0,2.3,0);
- add(new THREE.BoxGeometry(15.6,3.2,.15),gl,0,2,5.08);
- add(new THREE.BoxGeometry(2.6,2.5,.2),dark,-3,1.25,5.12);
- add(new THREE.BoxGeometry(6,.3,3.4),org,-3,3.4,6.4);
- add(new THREE.BoxGeometry(2.4,2.2,1.6),conc,5.2,1.1,6.3);
- add(new THREE.BoxGeometry(2,.9,.1),gl,5.2,1.7,7.13);
- add(new THREE.BoxGeometry(2.6,.5,.2),org,5.2,2.5,7.1);
- add(new THREE.BoxGeometry(15.4,4.2,4.8),conc,0,6.7,-2.4);add(new THREE.BoxGeometry(5.5,4.2,4.8),conc,-4.95,6.7,2.4);add(new THREE.BoxGeometry(5.5,4.2,4.8),conc,4.95,6.7,2.4);add(new THREE.BoxGeometry(4.4,.4,4.8),conc,0,8.6,2.4);
- add(new THREE.BoxGeometry(5.4,3.4,.15),gl,-4.9,6.7,4.9);add(new THREE.BoxGeometry(5.4,3.4,.15),gl,4.9,6.7,4.9);
- add(new THREE.BoxGeometry(15.4,.25,10),org,0,9.0,0);
- add(new THREE.BoxGeometry(16,.4,10.2),grey,0,9.3,0);
- for(const sx of[-1,1])add(new THREE.BoxGeometry(.25,4.2,.25),org,sx*7.7,6.7,4.9);
+ const mat=(c,r)=>new THREE.MeshStandardMaterial({color:c,roughness:r===undefined?.8:r}),
+  conc=mat(0xc9c4ba,.9),grey=mat(0x6b6862,.85),org=mat(0xe8701e,.5),dark=mat(0x2a2e33,.6),
+  gl=new THREE.MeshStandardMaterial({color:0x9fd3ef,roughness:.1,metalness:.3,transparent:true,opacity:.42});
+ const add=(geo,mt,x,y,z)=>{const m=new THREE.Mesh(geo,mt);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;gp.add(m);return m};
+ const rr=(x0,x1,y0,y1,r)=>{const s=new THREE.Shape();s.moveTo(x0+r,y0);s.lineTo(x1-r,y0);s.quadraticCurveTo(x1,y0,x1,y0+r);s.lineTo(x1,y1-r);s.quadraticCurveTo(x1,y1,x1-r,y1);s.lineTo(x0+r,y1);s.quadraticCurveTo(x0,y1,x0,y1-r);s.lineTo(x0,y0+r);s.quadraticCurveTo(x0,y0,x0+r,y0);return s};
+ const slab=(shape,hgt,bev)=>new THREE.ExtrudeGeometry(shape,{depth:hgt,bevelEnabled:true,bevelThickness:bev,bevelSize:bev,bevelSegments:3,curveSegments:10}).rotateX(-Math.PI/2);
+ // Abgerundetes Hauptvolumen (Halle hinten); Form y = -z
+ add(slab(rr(-6.2,6.2,-3,9,2.6),9.5,.35),conc,0,0,0);
+ // Vorderfront mit zwei Durchfahrten (je 2,4 m), Säule in der Mitte
+ add(new THREE.BoxGeometry(3.4,9.5,4),conc,-4.5,4.75,5);
+ add(new THREE.BoxGeometry(3.4,9.5,4),conc,4.5,4.75,5);
+ add(new THREE.BoxGeometry(.8,9.5,4),conc,0,4.75,5);
+ add(new THREE.BoxGeometry(5.6,1,4),conc,0,9,5);
+ // Dach
+ add(slab(rr(-6.8,6.8,-3.6,9.6,3),.6,.2),grey,0,9.5,0);
+ // Glas und Eingang
+ add(new THREE.BoxGeometry(2.2,5.6,.1),gl,-3.8,4.9,7.02);
+ add(new THREE.BoxGeometry(2.2,5.6,.1),gl,3.8,4.9,7.02);
+ add(new THREE.BoxGeometry(1.1,2.4,.1),dark,-5.6,1.2,7.03);
+ // Kasse
+ add(new THREE.BoxGeometry(2.4,2.2,1.6),conc,-4.5,1.1,8.6);
+ add(new THREE.BoxGeometry(2,.9,.1),gl,-4.5,1.7,9.42);
+ // Säule mit Umlenkrad (senkrechte Achse) hinten
+ add(new THREE.CylinderGeometry(.9,1.1,8.4,16),conc,0,4.2,-6.5);
+ add(new THREE.CylinderGeometry(2.2,2.2,.7,24),org,0,8,-6.5);
+ // Außentreppe aufs Dach
+ for(let k=0;k<14;k++)add(new THREE.BoxGeometry(1.8,(k+1)*9.5/14,.6),conc,7.7,(k+1)*9.5/28,-7.4+k*.6);
+ add(new THREE.BoxGeometry(2.6,.4,2.4),grey,7.7,9.3,1.2);
  gp.position.set(v.x,h,v.z);gp.rotation.y=Math.atan2(dx,dz);scene.add(gp);
- rb(v.x-8,v.x+8,v.z-8,v.z+8)}
+ rb(v.x-9,v.x+9,v.z-9,v.z+9)}
 function liftPos(l,t){const P=l.pts,c=l.cum,s=((((t%1)+1)%1))*l.tot;let i=0;while(i<P.length-2&&c[i+1]<s)i++;const f=c[i+1]>c[i]?(s-c[i])/(c[i+1]-c[i]):0;return new THREE.Vector3().lerpVectors(P[i],P[i+1],cl(f,0,1))}
+function railSeg(p,q,mat){const len=p.distanceTo(q);if(len<.01)return;const m=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,len,5).rotateX(Math.PI/2),mat);m.position.copy(p).lerp(q,.5);m.lookAt(q);scene.add(m)}
+function garageDef(l){const A=l.A,B=l.B,LH=Math.hypot(B.x-A.x,B.z-A.z)||1,ux=(B.x-A.x)/LH,uz=(B.z-A.z)/LH,rx=-uz,rz=ux;
+ const wp=(al,lat,y)=>new THREE.Vector3(A.x+ux*al+rx*lat,y,A.z+uz*al+rz*lat);
+ return{wp,entry:wp(4.5,1.6,8),ramp:wp(3,1.6,6.5),slots:[0,1,2].map(i=>wp(1.5-3*i,1.6,6.5))}}
+function buildGarage(l){const A=l.A,B=l.B,LH=Math.hypot(B.x-A.x,B.z-A.z)||1,ux=(B.x-A.x)/LH,uz=(B.z-A.z)/LH,rx=-uz,rz=ux;
+ const wp=(al,lat,y)=>new THREE.Vector3(A.x+ux*al+rx*lat,y,A.z+uz*al+rz*lat);
+ const rail=new THREE.MeshStandardMaterial({color:0x7d8794,metalness:.7,roughness:.35});
+ const g=garageDef(l);railSeg(g.entry,wp(3,1.6,6.5),rail);railSeg(wp(3,1.6,6.5),wp(-4.5,1.6,6.5),rail);
+ const sw=new THREE.Group();const box=new THREE.Mesh(new THREE.BoxGeometry(.9,1.6,.5),new THREE.MeshStandardMaterial({color:0x3a6fb0,roughness:.6}));box.position.y=.8;sw.add(box);
+ const lev=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,1.1,6),new THREE.MeshStandardMaterial({color:0xe8701e}));lev.position.set(.5,.9,.1);lev.rotation.z=.6;sw.add(lev);
+ sw.position.copy(l.sw);sw.rotation.y=Math.atan2(ux,uz);scene.add(sw);l.swMesh=sw}
+function mkPath(pts){const cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+pts[i].distanceTo(pts[i-1]));return{pts,cum,len:cum[cum.length-1]||1}}
+function findRejoin(l,e){let best=0,bd=1e9;for(let i=0;i<=400;i++){const t=i/400,d=liftPos(l,t).distanceTo(e);if(d<bd){bd=d;best=t}}return best}
+function toggleSw(l){if(!l.stop){toast('Erst Notstopp drücken, dann die Weiche umlegen');return}
+ l.park=!l.park;
+ if(l.park){let n=0;const g=garageDef(l);l.cabs.forEach(c=>{if(c.mode!=='loop')return;const k=l.used.indexOf(false);if(k<0)return;l.used[k]=true;
+   c.path=mkPath([c.m.position.clone(),g.entry,g.ramp,g.slots[k]]);c.p=0;c.mode='go';c.slot=k;n++});
+   toast(n?'Weiche auf Keller: '+n+' Gondel(n) fahren ein':'Keine Gondel auf der Strecke')}
+ else{const g=garageDef(l);l.cabs.forEach(c=>{if(c.mode!=='parked')return;const rj=findRejoin(l,g.entry);
+   c.path=mkPath([c.m.position.clone(),g.slots[c.slot],g.ramp,g.entry]);c.p=0;c.mode='back';c.rejoin=rj;l.used[c.slot]=false});
+   toast('Weiche auf Seilbahn')}}
+function updLift(dt){let near=null;
+ lifts.forEach(l=>{l.cabs.forEach(c=>{
+   if(!c.mode)c.mode='loop';
+   if(c.mode==='loop'){if(!l.stop)c.t=(c.t+dt*6/(l.tot||l.L))%1;c.m.position.copy(liftPos(l,c.t));return}
+   if(c.mode==='go'||c.mode==='back'){c.p=Math.min(1,c.p+dt*2.5/c.path.len);c.m.position.copy(liftPos({pts:c.path.pts,cum:c.path.cum,tot:c.path.len},Math.min(c.p,.9999)));
+     if(c.p>=1){if(c.mode==='go')c.mode='parked';else{c.mode='loop';c.t=c.rejoin}}}
+ });
+ if(l.sw&&onFoot&&Math.hypot(P.x-l.sw.x,P.z-l.sw.z)<6)near=l});
+ window.__swLift=near;const b=$('bSw');if(b){b.style.display=near?'':'none';if(near)b.textContent=near.park?'🔀 Weiche: Keller':'🔀 Weiche: Seilbahn'}}
 let liftA=null,liftMark=null;
 function addLift(p,gon){if(!liftA){liftA=p.clone();liftMark=bm(new THREE.SphereGeometry(1.5),0xff3030);liftMark.position.copy(p);scene.add(liftMark);toast('Talstation gesetzt – jetzt Bergstation antippen');return}
  const a=liftA,b=p;if(Math.hypot(a.x-b.x,a.z-b.z)<40){toast('Lift zu kurz (min. 40 m)');return}
  const Lh=Math.hypot(a.x-b.x,a.z-b.z);if(!spend(Math.round(gon?15000+Lh*80:5000+Lh*40)))return;scene.remove(liftMark);liftA=null;
  const ya=hAt(a.x,a.z)+(gon?8:7),yb=hAt(b.x,b.z)+(gon?8:7),A=new THREE.Vector3(a.x,ya,a.z),B=new THREE.Vector3(b.x,yb,b.z),L=A.distanceTo(B);
  [A,B].forEach(v=>{const s=bm(new THREE.BoxGeometry(4,6,4).translate(0,-3.5,0),0xd9dde2);s.position.copy(v);scene.add(s);rb(v.x-2.3,v.x+2.3,v.z-2.3,v.z+2.3)});
- const dX=(B.x-A.x)/L,dZ=(B.z-A.z)/L,HZ=gon?10:0,
- P=[A,new THREE.Vector3(A.x+dX*HZ,ya,A.z+dZ*HZ),new THREE.Vector3(B.x-dX*HZ,yb,B.z-dZ*HZ),B];
+ const LH=Math.hypot(B.x-A.x,B.z-A.z)||1,ux=(B.x-A.x)/LH,uz=(B.z-A.z)/LH,rxv=-uz,rzv=ux,Wd=1.6,ZB=gon?6.5:0;
+const wp=(al,lat,y)=>new THREE.Vector3(A.x+ux*al+rxv*lat,y,A.z+uz*al+rzv*lat);
+const yAt=al=>ya+(yb-ya)*cl(al/LH,0,1);
+const P=[];
+if(gon){const cA=-ZB,cB=LH+ZB;
+ for(let i=0;i<=8;i++){const ph=-Math.PI/2+Math.PI*i/8;P.push(wp(cA-Wd*Math.cos(ph),Wd*Math.sin(ph),ya))}
+ P.push(wp(cA,Wd,yAt(cA)),wp(cB,Wd,yAt(cB)));
+ for(let i=0;i<=8;i++){const ph=Math.PI/2-Math.PI*i/8;P.push(wp(cB+Wd*Math.cos(ph),Wd*Math.sin(ph),yb))}
+ P.push(wp(cB,-Wd,yAt(cB)),wp(cA,-Wd,yAt(cA)),P[0].clone());
+}else{P.push(A.clone(),B.clone(),A.clone())}
 const cum=[0];for(let i=1;i<P.length;i++)cum.push(cum[i-1]+P[i].distanceTo(P[i-1]));
 const LP={pts:P,cum,tot:cum[cum.length-1]};
-const pdx=-dZ*.8,pdz=dX*.8,cm2=new THREE.MeshBasicMaterial({color:0x202428,transparent:true,opacity:.4});
-[1,-1].forEach(s=>{for(let i=1;i<P.length;i++){const p0=P[i-1],p1=P[i],len=p0.distanceTo(p1);if(len<.01)continue;
- const seg=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,len,4).rotateX(Math.PI/2),cm2);
- seg.position.set((p0.x+p1.x)/2+pdx*s,(p0.y+p1.y)/2,(p0.z+p1.z)/2+pdz*s);seg.lookAt(p1.x+pdx*s,p1.y,p1.z+pdz*s);scene.add(seg)}});
- for(let k=1;k<5;k++){const f=k/5,x=a.x+(b.x-a.x)*f,z=a.z+(b.z-a.z)*f,gy=hAt(x,z),ly=liftPos(LP,f).y,h=ly-gy;
-  const p2=new THREE.Group(),cm=new THREE.MeshStandardMaterial({color:0xa9aca6,roughness:.85}),sheave=new THREE.MeshStandardMaterial({color:0x3a3f46,metalness:.5,roughness:.4});p2.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);const pil=new THREE.Mesh(new THREE.CylinderGeometry(.42,.55,h,10).translate(0,h/2,0),cm);pil.castShadow=true;p2.add(pil);const arm=new THREE.Mesh(new THREE.BoxGeometry(4.6,.35,.5).translate(0,h-.3,0),cm);arm.castShadow=true;p2.add(arm);for(const sx of[-.8,.8]){p2.add(new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.4,10).rotateX(Math.PI/2).translate(sx,h+.05,0),sheave))}p2.position.set(x,gy,z);scene.add(p2);rc(x,z,.6)}
+const cm2=new THREE.MeshBasicMaterial({color:0x202428,transparent:true,opacity:.4});
+for(let i=1;i<P.length;i++){const p0=P[i-1],p1=P[i],len=p0.distanceTo(p1);if(len<.01)continue;
+ const seg=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,len,4).rotateX(Math.PI/2),cm2);seg.position.copy(p0).lerp(p1,.5);seg.lookAt(p1);scene.add(seg)}
+ for(let k=1;k<5;k++){const f=k/5,x=a.x+(b.x-a.x)*f,z=a.z+(b.z-a.z)*f,gy=hAt(x,z),ly=ya+(yb-ya)*f,h=ly-gy;
+  const p2=new THREE.Group(),cm=new THREE.MeshStandardMaterial({color:0xa9aca6,roughness:.85}),sheave=new THREE.MeshStandardMaterial({color:0x3a3f46,metalness:.5,roughness:.4});p2.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);const pil=new THREE.Mesh(new THREE.CylinderGeometry(.42,.55,h,10).translate(0,h/2,0),cm);pil.castShadow=true;p2.add(pil);const arm=new THREE.Mesh(new THREE.BoxGeometry(4.6,.35,.5).translate(0,h-.3,0),cm);arm.castShadow=true;p2.add(arm);for(const sx of[-1.6,1.6]){p2.add(new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.4,10).rotateX(Math.PI/2).translate(sx,h+.05,0),sheave))}p2.position.set(x,gy,z);scene.add(p2);rc(x,z,.6)}
  const cabs=(gon?[0,.25,.5,.75]:[0,.5]).map(o=>{const m=new THREE.Group();if(gon){m.add(bm(new THREE.BoxGeometry(.12,.9,.12).translate(0,-.45,0),0x3b3f46),bm(new THREE.BoxGeometry(2.4,.2,2.4).translate(0,-1.0,0),0x2a2d33),bm(new THREE.BoxGeometry(2.6,2.2,2.6).translate(0,-2.0,0),0xd8322a),new THREE.Mesh(new THREE.BoxGeometry(2.64,1.1,2.64).translate(0,-1.45,0),new THREE.MeshStandardMaterial({color:0x9fd3ef,transparent:true,opacity:.35,roughness:.1,metalness:.2})))}else{m.add(bm(new THREE.BoxGeometry(.12,.7,.12).translate(0,-.35,0),0x3b3f46),bm(new THREE.BoxGeometry(1.8,.5,1.8).translate(0,-.95,0),0xe03a2a),new THREE.Mesh(new THREE.BoxGeometry(1.5,.4,1.5).translate(0,-.75,0),new THREE.MeshStandardMaterial({color:0x9fd3ef,transparent:true,opacity:.35})))}scene.add(m);return {m,t:o}});
- {const Lx=(b.x-a.x)/L,Lz=(b.z-a.z)/L;[[A,Lx,Lz],[B,-Lx,-Lz]].forEach(([v,ux,uz])=>{const gt=new THREE.Group();gt.add(bm(new THREE.BoxGeometry(.25,1.6,.25).translate(-1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(.25,1.6,.25).translate(1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(2.4,.12,.12).translate(0,1.2,0),0xe03a2a));gt.position.set(v.x+ux*6.5,hAt(v.x,v.z),v.z+uz*6.5);gt.rotation.y=Math.atan2(ux,uz);scene.add(gt)})}
+ {const Lx=(b.x-a.x)/L,Lz=(b.z-a.z)/L;[[A,Lx,Lz],[B,-Lx,-Lz]].forEach(([v,ux,uz])=>{const gt=new THREE.Group();gt.add(bm(new THREE.BoxGeometry(.25,1.6,.25).translate(-1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(.25,1.6,.25).translate(1.2,.8,0),0x444a52),bm(new THREE.BoxGeometry(2.4,.12,.12).translate(0,1.2,0),0xe03a2a));gt.position.set(v.x+ux*8.6,hAt(v.x,v.z),v.z+uz*8.6);gt.rotation.y=Math.atan2(ux,uz);scene.add(gt)})}
  if(gon){const Dx=b.x-a.x,Dz=b.z-a.z;[[a,Dx,Dz],[b,-Dx,-Dz]].forEach(([v,ux,uz])=>stationBuild(v,ux,uz))}
- lifts.push({A,B,cabs,L,cap:gon?120:60,gon:gon?1:0,pts:P,cum,tot:LP.tot});toast(gon?'Seilbahn gebaut':'Skilift gebaut')}
+ lifts.push({A,B,cabs,L,cap:gon?120:60,gon:gon?1:0,pts:P,cum,tot:LP.tot,park:false,used:[false,false,false],sw:gon?(()=>{const q=wp(12,-5,0);q.y=hAt(q.x,q.z);return q})():null});if(gon)buildGarage(lifts[lifts.length-1]);toast(gon?'Seilbahn gebaut':'Skilift gebaut')}
 const decos=[];let decoT='tree';const DC={tree:100,flag:50,bench:80,man:60,lamp:120};
 function decoMesh(t){const m=new THREE.Group(),W=0xffffff;
  if(t==='tree'){m.add(bm(new THREE.CylinderGeometry(.3,.4,1.5).translate(0,.75,0),0x5a3a20));[[2.4,1.5,1.4],[2,1.3,2.8],[1.4,1.2,4]].forEach(a=>m.add(bm(new THREE.ConeGeometry(a[0],a[1]*1.6,7).translate(0,a[2]+.5,0),0x1f5a35)));m.add(bm(new THREE.ConeGeometry(.9,1,7).translate(0,5.3,0),W))}
@@ -631,7 +682,7 @@ $('bBuild').onclick=()=>{if(mode==='build'){cancelPR();clearSel()}mode=mode==='b
  $('tools').style.display=b?'flex':'none';$('pc').style.display=b?'flex':'none';$('joy').style.display=$('drive').style.display=b?'none':'';
  if(b){bf.set(G.x,0,G.z-20);document.querySelector('[data-t=cam]').click()}};
 const manS=()=>{if(G.auto)$('bAuto').click()};
-$('bGu').onclick=()=>{manS();shiftG(1,1)};$('bGd').onclick=()=>{manS();shiftG(-1,1)};$('bRev').onclick=()=>{G.revReq=!G.revReq;$('bRev').classList.toggle('on',G.revReq);toast(G.revReq?'Rückwärtsgang: bremst und fährt zurück':'Rückwärtsgang aus')};
+$('bGu').onclick=()=>{manS();shiftG(1,1)};$('bGd').onclick=()=>{manS();shiftG(-1,1)};$('bSw').onclick=()=>{if(window.__swLift)toggleSw(window.__swLift)};$('bRev').onclick=()=>{G.revReq=!G.revReq;$('bRev').classList.toggle('on',G.revReq);toast(G.revReq?'Rückwärtsgang: bremst und fährt zurück':'Rückwärtsgang aus')};
 $('bAuto').onclick=()=>{G.auto=!G.auto;$('bAuto').textContent=G.auto?'⚙ Auto':'⚙ Manuell';$('bAuto').classList.toggle('on',G.auto)};
 addEventListener('keydown',e=>{if(e.repeat)return;const k=e.key.toLowerCase();if(k==='e'){manS();shiftG(1,1)}if(k==='q'){manS();shiftG(-1,1)}if(k==='g')$('bAuto').click()});
 $('bVeh').onclick=()=>{if(onFoot){toast('Erst einsteigen');return}if(Math.abs(G.v)>2){toast('Erst anhalten');return}const e=$('vm');
@@ -720,7 +771,7 @@ const fx=-f,fz=-h2,rx=h2,rz=-f;
   for(let dz=-6;dz<=6;dz++)for(let dx=-6;dx<=6;dx++){const a=cx+dx,b=cz+dz;if(a<0||b<0||a>N||b>N)continue;const d=Math.hypot(dx,dz)*C;if(d<14)SN[b*V+a]=Math.min(1,SN[b*V+a]+dt*.012*(1-d/14))}
   for(let k=0;k<36;k++){const t=((tm*.8+k/36+u.seed)%1);const dd=1+t*14;u.pp[3*k]=u.x+fx*dd+Math.sin(k*7.3)*1.2*t;u.pp[3*k+1]=u.y+4.2+t*7-t*t*13;u.pp[3*k+2]=u.z+fz*dd+Math.cos(k*5.1)*1.2*t}
   u.pts.geometry.attributes.position.needsUpdate=true;dirtyC=true;{const ax=((u.x+fx*12+S/2)/C)|0,az=((u.z+fz*12+S/2)/C)|0;for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const a=ax+dx,b=az+dz;if(a<1||b<1||a>=N||b>=N)continue;const d=Math.hypot(dx,dz)*C;if(d<8){const i=b*V+a;SP[i]=Math.min(7,SP[i]+dt*.05*(1-d/8))}}if(Math.floor(tm*2)!==Math.floor((tm-dt)*2))dirtyG=true}});
- lifts.forEach(l=>l.cabs.forEach(c=>{c.t=(c.t+(l.stop?0:dt*6/l.L))%1;c.m.position.copy(liftPos(l,c.t))}));
+ updLift(dt);
  updTown(dt);dayT+=dt;if(dayT>=DAY){dayT-=DAY;newDay()}updSound(dt);
  if(dirtyG&&now-lastG>80){syncPos();dirtyG=false;dirtyC=true;lastG=now}
  if(dirtyC&&now-lastC>160){paint();dirtyC=false;lastC=now}
@@ -778,4 +829,4 @@ if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}
 let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.3</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.5</div></body></html>
