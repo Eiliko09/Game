@@ -47,7 +47,14 @@ button.on,button.sel{background:var(--ac)}
 <b>Bauen:</b> Gelände formen, Pisten markieren, Lift, Restaurant und Schneekanonen setzen. Kanonen antippen zum Ein-/Ausschalten.<br><br>
 Gäste kommen, wenn Lift und präparierte Piste vorhanden sind.</div>
 <button id="go" style="background:#ff8a1f;font-size:18px;padding:14px 30px">Los geht's</button></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){var shown=0,wrap=null;function box(t){if(shown>5)return;shown++;if(!wrap){wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:6px;right:6px;top:6px;z-index:99999;display:flex;flex-direction:column;gap:4px;max-height:80%;overflow:auto';(document.body||document.documentElement).appendChild(wrap)}var d=document.createElement('div');d.style.cssText='background:#b00020;color:#fff;font:12px/1.35 monospace;padding:8px;border-radius:8px;-webkit-user-select:text;user-select:text;word-break:break-word';d.textContent='FEHLER: '+t;d.onclick=function(){d.remove()};wrap.appendChild(d)}
+window.addEventListener('error',function(e){var st=e.error&&e.error.stack?' | '+String(e.error.stack).split('\n').slice(0,3).join(' / '):'';box((e.message||'?')+' (Zeile '+(e.lineno||'?')+':'+(e.colno||'?')+')'+st)});
+window.addEventListener('unhandledrejection',function(e){box('Promise: '+(e.reason&&e.reason.message||e.reason))});
+window.addEventListener('load',function(){if(typeof THREE==='undefined')box('three.js wurde nicht geladen (cdnjs blockiert oder offline).')});
+window.__diagBox=box})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script>
 const $=id=>document.getElementById(id),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
 const cv=$('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});
@@ -464,7 +471,10 @@ function newDay(){const r=calcDay(),{gp,guests,inc,exp}=r;money+=inc-exp;rep=gp?
 
 // ---------- Hauptschleife ----------
 const fv=new THREE.Vector3(),tmp=new THREE.Vector3();let last=performance.now(),hudT=0,tm=0;
-function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;tm+=dt;
+let __bad=0,__last='';
+function loop(now){requestAnimationFrame(loop);try{loop2(now);__bad=0}catch(e){__bad++;const m=(e&&e.message||String(e));if(m!==__last){__last=m;console.error(e);window.__diagBox&&window.__diagBox('Spielschleife: '+m+' | '+String(e&&e.stack||'').split('\n')[1])}
+ if(__bad===60){try{const b=localStorage.getItem(KEY);if(b)localStorage.setItem(KEY+'_defekt',b);localStorage.removeItem(KEY)}catch(_){}if(!sessionStorage.getItem('sk_reload2')){sessionStorage.setItem('sk_reload2','1');location.reload()}}}}
+function loop2(now){const dt=Math.min(.05,(now-last)/1000);last=now;tm+=dt;
  let ix=jx,iy=jy;if(!jp){ix=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);iy=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0)}
  if(mode==='build'){ix=iy=0}
  let wx=0,wy=0;if(onFoot){wx=ix;wy=iy;ix=iy=0}
@@ -552,6 +562,6 @@ function load(){try{const j=localStorage.getItem(KEY);if(!j)return;const d=JSON.
 $('bSave').onclick=()=>save(false);setInterval(()=>save(true),30000);document.addEventListener('visibilitychange',()=>{if(document.hidden)save(true)});addEventListener('pagehide',()=>save(true));
 if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}}
 let started=false;
-try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e)}
+try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v4</div></body></html>
