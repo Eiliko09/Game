@@ -32,15 +32,15 @@ button.on,button.sel{background:var(--ac)}
 <canvas id="c"></canvas>
 <div class="hud"><span class="chip" id="hMoney"></span><span class="chip" id="hDay"></span><span class="chip" id="hSnow"></span><span class="chip" id="hRep"></span><span class="chip" id="hFuel"></span><span class="chip" id="hSpd"></span></div>
 <div id="top"><button id="bFs">⛶</button><button id="bSnd">🔊</button><button id="bSave">💾</button><button id="bBuild">🏗 Bauen</button></div>
-<div id="pc" style="display:none;position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);gap:4px;background:var(--bg);padding:4px;border-radius:12px"><button data-t="close">⛔ Sperren</button><button data-t="open">✅ Öffnen</button><button id="bPDone" style="display:none">✔ Fertig</button><button id="bPDel" style="display:none">🗑 Löschen</button></div><div id="joy"><div id="knob"></div></div>
+<div id="pc" style="display:none;position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);gap:4px;background:var(--bg);padding:4px;border-radius:12px"><button data-t="close">⛔ Sperren</button><button data-t="open">✅ Öffnen</button><button id="bPDone" style="display:none">✔ Fertig</button><button id="bPDel" style="display:none">🗑 Löschen</button><button id="bPFence" style="display:none">🚧 Zaun</button></div><div id="joy"><div id="knob"></div></div>
 <div id="drive"><div id="gp"><div id="tach"><div id="tachF"></div></div><span class="chip" id="gTxt">Gang 1</span><button id="bGd">−</button><button id="bGu">+</button><button id="bAuto" class="on">⚙ Auto</button></div><button id="bBuro" style="display:none">🚪 Büro betreten</button><button id="bFuel" style="display:none">⛽ Tanken</button><button id="bUse" style="display:none">🔧 Bedienen</button><button id="bFoot">🚶 Aussteigen</button><button id="bCam">📷 Außen</button><button id="bTill">❄ Fräse aus</button><button id="bBlade">⛏ Schild: oben</button><button id="bVeh">🚜 Fahrzeug</button></div><div id="vm"></div>
 <div id="tools"><div id="info"></div><div id="row">
 <button data-t="cam">✋ Bewegen / Kanone an-aus</button>
 <button data-t="up">⛰ Anheben</button><button data-t="down">🕳 Absenken</button>
-<button data-t="pdraw">✏ Piste zeichnen</button><button data-t="prect">▭ Pistenstreifen</button><button data-t="piste">🎿 Piste markieren</button><button data-t="lift">🚡 Lift ab 7.000</button>
+<button data-t="pdraw">✏ Piste zeichnen</button><button data-t="prect">▭ Pistenstreifen</button><button data-t="zaun">🚧 Zaun (Holz)</button><button data-t="piste">🎿 Piste markieren</button><button data-t="lift">🚡 Lift ab 7.000</button>
 <button data-t="rest">🍽 Restaurant 20.000</button><button data-t="gun">🌨 Kanone 3.000</button><button data-t="lamp">💡 Flutlicht 1.500</button>
 <button data-t="pump">💧 Pumpe 8.000</button><button data-t="trafo">⚡ Trafo 6.000</button><button data-t="road">🛣 Straße 60/m</button><button data-t="alm">🏠 Alm 35.000</button><button data-t="tank">⛽ Tankstelle 2.500</button><button data-t="gond">🚠 Seilbahn 15.000+</button><button data-t="deko" data-d="tree">🌲 Tanne</button><button data-t="deko" data-d="flag">🚩 Fahne</button><button data-t="deko" data-d="bench">🪑 Bank</button><button data-t="deko" data-d="man">⛄ Schneemann</button><button data-t="deko" data-d="lamp">🏮 Laterne</button><button data-t="tmove">🔧 Tankstelle versetzen</button><button data-t="jump">🛷 Schanze 2.000</button><button id="bBr">⭕ Pinsel ×1</button></div></div>
-<div id="toast"></div><div id="office" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);background:var(--bg);color:#fff;padding:8px 12px;border-radius:12px;font-size:12px;line-height:1.5;width:230px"></div><div id="sum" style="display:none;position:fixed;inset:0;z-index:8;background:rgba(10,20,35,.8);color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;font-size:15px;line-height:1.6"></div>
+<div id="pw" style="display:none;position:fixed;left:8px;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:6;align-items:center;gap:8px;background:var(--bg);color:#fff;padding:6px 10px;border-radius:12px;font-size:12px"><span id="pwT">Breite: 14 m</span><input id="pwR" type="range" min="4" max="40" step="1" value="14" style="width:120px"></div><div id="toast"></div><div id="office" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);background:var(--bg);color:#fff;padding:8px 12px;border-radius:12px;font-size:12px;line-height:1.5;width:230px"></div><div id="sum" style="display:none;position:fixed;inset:0;z-index:8;background:rgba(10,20,35,.8);color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;font-size:15px;line-height:1.6"></div>
 <div id="rot"><button class="x" onclick="this.parentNode.classList.add('off')">✕</button><div style="font-size:48px">🔄</div>Bitte drehe dein iPhone ins Querformat</div>
 <div id="intro"><button class="x" onclick="document.getElementById('intro').remove()">✕</button><h1>⛷ Skigebiet Tycoon</h1>
 <div>Du startest mit 250.000 €. Unten im Dorf stehen die Hotels, darüber beginnt dein tief verschneites Skigebiet (Querformat empfohlen).<br><br>
@@ -79,7 +79,7 @@ addEventListener('resize',resize);resize();
 // ---------- Gelände ----------
 const N=300,S=1200,C=S/N,V=N+1;
 const PK=[[0,-180,200,230,190],[-320,-60,150,190,140],[330,-120,160,200,150],[-120,-450,170,150,130],[200,-480,150,150,110],[0,150,170,120,45]];
-const SP=new Float32Array(V*V),QH=new Float32Array(V*V),H=new Float32Array(V*V),SN=new Float32Array(V*V),GR=new Float32Array(V*V),PI=new Uint8Array(V*V),PC=new Uint8Array(V*V);
+const SP=new Float32Array(V*V),QH=new Float32Array(V*V),H=new Float32Array(V*V),SN=new Float32Array(V*V),GR=new Float32Array(V*V),PI=new Uint8Array(V*V),PC=new Uint8Array(V*V),FZ=new Uint8Array(V*V);
 for(let iz=0;iz<V;iz++)for(let ix=0;ix<V;ix++){const x=ix*C-S/2,z=iz*C-S/2,i=iz*V+ix;
  let hh=2+4*Math.sin(x*.012)*Math.cos(z*.017)+2*Math.sin(x*.043+z*.031)+Math.sin(x*.11+z*.09);
  for(const [px,pz,sx,sz,ph] of PK)hh+=ph*Math.exp(-((x-px)**2/(2*sx*sx)+(z-pz)**2/(2*sz*sz)));H[i]=hh;
@@ -102,7 +102,7 @@ function addPRect(p){
  if(!prA){prA={x:p.x,z:p.z};prFirst=true;prEnd=null;prMark=bm(new THREE.SphereGeometry(1.5),0x2f8cff);prMark.position.set(p.x,hAt(p.x,p.z)+1.5,p.z);scene.add(prMark);$('bPDone').style.display='';toast('Start gesetzt – jetzt nächsten Punkt antippen');return}
  const ax=prA.x,az=prA.z,bx=p.x,bz=p.z,L=Math.hypot(bx-ax,bz-az);
  if(L<20){toast('Zu kurz (min. 20 m)');return}
- const ux=(bx-ax)/L,uz=(bz-az)/L,hw=10*BS,set=new Set();
+ const ux=(bx-ax)/L,uz=(bz-az)/L,hw=Math.max(2,PW/2),set=new Set();
  const i0=Math.max(0,Math.floor((Math.min(ax,bx)-hw-C+S/2)/C)),i1=Math.min(N,Math.ceil((Math.max(ax,bx)+hw+C+S/2)/C)),j0=Math.max(0,Math.floor((Math.min(az,bz)-hw-C+S/2)/C)),j1=Math.min(N,Math.ceil((Math.max(az,bz)+hw+C+S/2)/C));
  for(let jz=j0;jz<=j1;jz++)for(let jx=i0;jx<=i1;jx++){const dx=jx*C-S/2-ax,dz=jz*C-S/2-az,t=dx*ux+dz*uz,sd=-dx*uz+dz*ux,i=jz*V+jx;if(PI[i])continue;
   if((t>=0&&t<=L&&Math.abs(sd)<=hw)||(!prFirst&&Math.hypot(dx,dz)<=hw))set.add(i)}
@@ -114,61 +114,45 @@ function addPRect(p){
  else if(prEnd){const k=ends.indexOf(prEnd);if(k>=0)ends.splice(k,1)}
  prEnd={x:bx,z:bz,ux:ux,uz:uz,hw:hw};ends.push(prEnd);
  prFirst=false;prA={x:bx,z:bz};prMark.position.set(bx,hAt(bx,bz)+1.5,bz);dirtyC=true;toast('Weiter antippen (Kurve) oder ✔ Fertig')}
-// ---------- Piste zeichnen (Wischen, wird automatisch begradigt) ----------
-let stroke=[],strokeLine=null,lastS=0;
-function resetStroke(){stroke=[];if(strokeLine)strokeLine.visible=false}
-function strokeAdd(x,y){
- if(!stroke.length&&sp){const q0=pick(sp.x,sp.y);if(q0)stroke.push({x:q0.x,z:q0.z})}
- const now=performance.now();if(now-lastS<30)return;lastS=now;
- const q=pick(x,y);if(!q)return;const l=stroke[stroke.length-1];
- if(l&&Math.hypot(q.x-l.x,q.z-l.z)<3)return;if(stroke.length>=590)return;stroke.push({x:q.x,z:q.z});
- if(!strokeLine){strokeLine=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0x2f8cff,depthTest:false}));strokeLine.renderOrder=99;strokeLine.frustumCulled=false;strokeLine.geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(1800),3));scene.add(strokeLine)}
- const a=strokeLine.geometry.attributes.position;stroke.forEach((t,i)=>a.setXYZ(i,t.x,hAt(t.x,t.z)+1.2,t.z));a.needsUpdate=true;strokeLine.geometry.setDrawRange(0,stroke.length);strokeLine.visible=true}
-function dp(P,tol){if(P.length<3)return P.slice();let m=0,k=0;const a=P[0],b=P[P.length-1],dx=b.x-a.x,dz=b.z-a.z,L=Math.hypot(dx,dz)||1e-6;for(let i=1;i<P.length-1;i++){const d=Math.abs((P[i].x-a.x)*dz-(P[i].z-a.z)*dx)/L;if(d>m){m=d;k=i}}if(m<=tol)return[a,b];return dp(P.slice(0,k+1),tol).slice(0,-1).concat(dp(P.slice(k),tol))}
-function chaikin(P,n){for(let it=0;it<n;it++){const R=[P[0]];for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1];R.push({x:.75*a.x+.25*b.x,z:.75*a.z+.25*b.z},{x:.25*a.x+.75*b.x,z:.25*a.z+.75*b.z})}R.push(P[P.length-1]);P=R}return P}
+// ---------- Stift: genau das malen, was man zeichnet ----------
+let stroke=[],lastS=0,PW=14,pwShown=false;
+function resetStroke(){stroke=[]}
 function dseg(px,pz,a,b){const dx=b.x-a.x,dz=b.z-a.z,l2=dx*dx+dz*dz||1e-6;let t=((px-a.x)*dx+(pz-a.z)*dz)/l2;t=t<0?0:t>1?1:t;return Math.hypot(px-a.x-t*dx,pz-a.z-t*dz)}
-function endStroke(){
- const P=stroke;resetStroke();if(P.length<3)return;
- let len=0;for(let i=1;i<P.length;i++)len+=Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z);
- if(len<20){toast('Zu kurz (min. 20 m)');return}
- const hw=10*BS,F=P[0],E=P[P.length-1],set=new Set(),ne=[];let msg;
- if(len>60&&Math.hypot(F.x-E.x,F.z-E.z)<Math.max(12,len*.15)){
-  let k=0,m=0;P.forEach((q,i)=>{const d=Math.hypot(q.x-F.x,q.z-F.z);if(d>m){m=d;k=i}});
-  const poly=dp(P.slice(0,k+1),6).slice(0,-1).concat(dp(P.slice(k),6));
-  let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;poly.forEach(q=>{x0=Math.min(x0,q.x);x1=Math.max(x1,q.x);z0=Math.min(z0,q.z);z1=Math.max(z1,q.z)});
-  for(let jz=Math.max(0,Math.floor((z0+S/2)/C));jz<=Math.min(N,Math.ceil((z1+S/2)/C));jz++)for(let jx=Math.max(0,Math.floor((x0+S/2)/C));jx<=Math.min(N,Math.ceil((x1+S/2)/C));jx++){
-   const x=jx*C-S/2,z=jz*C-S/2,i=jz*V+jx;if(PI[i])continue;let ins=false;
-   for(let a=0,b=poly.length-1;a<poly.length;b=a++){const A=poly[a],B=poly[b];if((A.z>z)!==(B.z>z)&&x<(B.x-A.x)*(z-A.z)/(B.z-A.z)+A.x)ins=!ins}
-   if(ins)set.add(i)}
-  msg='Pistenfläche angelegt'}
- else{
-  let Q=dp(P,8);if(Q.length>2)Q=chaikin(dp(P,6),2);
-  for(let s=0;s<Q.length-1;s++){const a=Q[s],b=Q[s+1];
-   for(let jz=Math.max(0,Math.floor((Math.min(a.z,b.z)-hw+S/2)/C));jz<=Math.min(N,Math.ceil((Math.max(a.z,b.z)+hw+S/2)/C));jz++)for(let jx=Math.max(0,Math.floor((Math.min(a.x,b.x)-hw+S/2)/C));jx<=Math.min(N,Math.ceil((Math.max(a.x,b.x)+hw+S/2)/C));jx++){
-    const i=jz*V+jx;if(PI[i]||set.has(i))continue;if(dseg(jx*C-S/2,jz*C-S/2,a,b)<=hw)set.add(i)}}
-  const n=Q.length,d0=Math.hypot(Q[1].x-Q[0].x,Q[1].z-Q[0].z)||1,d1=Math.hypot(Q[n-1].x-Q[n-2].x,Q[n-1].z-Q[n-2].z)||1;
-  ne.push({x:Q[0].x,z:Q[0].z,ux:(Q[1].x-Q[0].x)/d0,uz:(Q[1].z-Q[0].z)/d0,hw:hw},{x:Q[n-1].x,z:Q[n-1].z,ux:(Q[n-1].x-Q[n-2].x)/d1,uz:(Q[n-1].z-Q[n-2].z)/d1,hw:hw});
-  msg=Q.length===2?'Gerade Piste angelegt':'Piste angelegt (begradigt)'}
- const cells=[...set];if(!cells.length){toast('Hier ist schon alles Piste');return}
- if(!spend(cells.length*2))return;
- cells.forEach(i=>PI[i]=1);ne.forEach(e=>ends.push(e));dirtyC=true;toast(msg)}
+function penSeg(a,b){const hw=Math.max(2,PW/2),cells=[];
+ for(let jz=Math.max(0,Math.floor((Math.min(a.z,b.z)-hw+S/2)/C));jz<=Math.min(N,Math.ceil((Math.max(a.z,b.z)+hw+S/2)/C));jz++)for(let jx=Math.max(0,Math.floor((Math.min(a.x,b.x)-hw+S/2)/C));jx<=Math.min(N,Math.ceil((Math.max(a.x,b.x)+hw+S/2)/C));jx++){const i=jz*V+jx;if(!PI[i]&&dseg(jx*C-S/2,jz*C-S/2,a,b)<=hw)cells.push(i)}
+ if(!cells.length)return true;if(!spend(cells.length*2))return false;
+ cells.forEach(i=>PI[i]=1);dirtyC=true;return true}
+function strokeAdd(x,y){
+ if(!stroke.length&&sp){const q0=pick(sp.x,sp.y);if(q0){stroke.push({x:q0.x,z:q0.z});penSeg(q0,q0)}}
+ const now=performance.now();if(now-lastS<25)return;lastS=now;
+ const q=pick(x,y);if(!q||!stroke.length)return;const l=stroke[stroke.length-1];
+ if(Math.hypot(q.x-l.x,q.z-l.z)<2)return;
+ if(!penSeg(l,q))return;stroke.push({x:q.x,z:q.z})}
+function endStroke(){const P=stroke;resetStroke();if(P.length<4)return;
+ const e=P[P.length-1],f=P[Math.max(0,P.length-4)],a=P[0],b=P[Math.min(P.length-1,3)],hw=Math.max(2,PW/2)+C*.8;
+ const d0=Math.hypot(b.x-a.x,b.z-a.z),d1=Math.hypot(e.x-f.x,e.z-f.z);
+ if(d0>1)ends.push({x:a.x,z:a.z,ux:(b.x-a.x)/d0,uz:(b.z-a.z)/d0,hw:hw});if(d1>1)ends.push({x:e.x,z:e.z,ux:(e.x-f.x)/d1,uz:(e.z-f.z)/d1,hw:hw})}
 // ---------- Piste antippen & löschen ----------
 let selCells=null;
-function clearSel(){if(selCells){selCells=null;dirtyC=true}const d=$('bPDel');if(d)d.style.display='none'}
+function clearSel(){if(selCells){selCells=null;dirtyC=true}['bPDel','bPFence'].forEach(k=>{const d=$(k);if(d)d.style.display='none'})}
+function openEnd(mx,mz){for(const e of ends){const ex=mx-e.x,ez=mz-e.z;if(Math.abs(ex*e.ux+ez*e.uz)<2*C&&Math.abs(-ex*e.uz+ez*e.ux)<e.hw-C*1.2)return true}return false}
+function fenceEdges(set){let n=0;set.forEach(i=>{if(FZ[i])return;const ix=i%V,iz=(i/V)|0;for(let d=0;d<4;d++){const dx=d===0?1:d===1?-1:0,dz=d===2?1:d===3?-1:0,jx=ix+dx,jz=iz+dz;if(jx>=0&&jz>=0&&jx<V&&jz<V&&PI[jz*V+jx])continue;if(openEnd(ix*C-S/2+dx*C/2,iz*C-S/2+dz*C/2))continue;n++}});return n}
 function selectPiste(p){
  const ix=Math.round((p.x+S/2)/C),iz=Math.round((p.z+S/2)/C);let start=-1;
  for(let dz=-1;dz<=1&&start<0;dz++)for(let dx=-1;dx<=1;dx++){const x=ix+dx,z=iz+dz;if(x>=0&&z>=0&&x<=N&&z<=N&&PI[z*V+x]){start=z*V+x;break}}
  if(start<0){clearSel();return}
  const set=new Set([start]),q=[start];
  while(q.length){const i=q.pop(),x=i%V,z=(i/V)|0;for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+d[0],b=z+d[1];if(a<0||b<0||a>N||b>N)continue;const j=b*V+a;if(PI[j]&&!set.has(j)){set.add(j);q.push(j)}}}
- selCells=set;const d=$('bPDel');d.textContent='🗑 Piste löschen (+'+(set.size*2).toLocaleString('de-DE')+' €)';d.style.display='';dirtyC=true}
+ selCells=set;dirtyC=true;
+ if(tool==='zaun'){const need=Math.ceil(fenceEdges(set)/2),d=$('bPFence');d.textContent='🚧 Zaun bauen ('+need+' Holz, du hast '+wood+')';d.style.display='';$('bPDel').style.display='none'}
+ else{const d=$('bPDel');d.textContent='🗑 Piste löschen (+'+(set.size*2).toLocaleString('de-DE')+' €)';d.style.display='';$('bPFence').style.display='none'}}
 // ---------- Pistenzaun ----------
 const fenceMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false});
 const fenceMesh=new THREE.Mesh(new THREE.BufferGeometry(),fenceMat);fenceMesh.frustumCulled=false;scene.add(fenceMesh);
 const MAXP=9000,postMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(.14,1.5,.14).translate(0,.75,0),new THREE.MeshLambertMaterial({color:0x4a3b2a}),MAXP);postMesh.frustumCulled=false;postMesh.count=0;scene.add(postMesh);
 let fsig=0,fsigLast=-1;
 function buildFence(){const pos=[],colr=[],idx=[],posts=new Map(),M4=new THREE.Matrix4();
- for(let iz=0;iz<V;iz++)for(let ix=0;ix<V;ix++){const i=iz*V+ix;if(!PI[i])continue;const cx=ix*C-S/2,cz=iz*C-S/2,c=PC[i]?[.9,.12,.1]:[1,.5,.08];
+ for(let iz=0;iz<V;iz++)for(let ix=0;ix<V;ix++){const i=iz*V+ix;if(!PI[i]||!FZ[i])continue;const cx=ix*C-S/2,cz=iz*C-S/2,c=PC[i]?[.9,.12,.1]:[1,.5,.08];
   for(let d=0;d<4;d++){const dx=d===0?1:d===1?-1:0,dz=d===2?1:d===3?-1:0,jx=ix+dx,jz=iz+dz;if(jx>=0&&jz>=0&&jx<V&&jz<V&&PI[jz*V+jx])continue;
    const mx=cx+dx*C/2,mz=cz+dz*C/2;let sk=0;for(const e of ends){const ex=mx-e.x,ez=mz-e.z;if(Math.abs(ex*e.ux+ez*e.uz)<2*C&&Math.abs(-ex*e.uz+ez*e.ux)<e.hw-C*1.2){sk=1;break}}if(sk)continue;
    const px=-dz*C/2,pz=dx*C/2,ax=mx-px,az=mz-pz,bx=mx+px,bz=mz+pz,ya=hAt(ax,az),yb=hAt(bx,bz),n=pos.length/3;
@@ -182,7 +166,7 @@ function paint(){fsig=0;for(let i=0;i<V*V;i++){const ix=i%V,iz=(i/V)|0,h=H[i];
  let sr=.8,sg=.85,sb=.9;if(PI[i]){sr=.7;sg=.8;sb=.93}if(PC[i]){sr=.95;sg=.5;sb=.45}
  const q=GR[i];if(q>0){sr+=(.92-sr)*q;sg+=(.94-sg)*q;sb+=(.97-sb)*q}
  const sn=Math.min(1,(.55+SN[i]*.75)*(s>.85?.7:1));
- const pl=cl(SP[i]*2,0,1);col[3*i]=(br+(sr-br)*sn)*(1-pl)+.95*pl;col[3*i+1]=(bg+(sg-bg)*sn)*(1-pl)+.97*pl;col[3*i+2]=(bb+(sb-bb)*sn)*(1-pl)+pl;if(PI[i]){if(mode==='build'){const cr=PC[i]?1:.3,cg=PC[i]?.3:.65,cb=PC[i]?.28:1,m=PC[i]?.5:.4;col[3*i]+=(cr-col[3*i])*m;col[3*i+1]+=(cg-col[3*i+1])*m;col[3*i+2]+=(cb-col[3*i+2])*m;if(selCells&&selCells.has(i)){col[3*i]+=(1-col[3*i])*.7;col[3*i+1]+=(.62-col[3*i+1])*.7;col[3*i+2]+=(.1-col[3*i+2])*.7}}fsig+=(i%9973)+1+(PC[i]?50000:0)+Math.round(H[i]*4)}}
+ const pl=cl(SP[i]*2,0,1);col[3*i]=(br+(sr-br)*sn)*(1-pl)+.95*pl;col[3*i+1]=(bg+(sg-bg)*sn)*(1-pl)+.97*pl;col[3*i+2]=(bb+(sb-bb)*sn)*(1-pl)+pl;if(PI[i]){if(mode==='build'){const cr=PC[i]?1:.3,cg=PC[i]?.3:.65,cb=PC[i]?.28:1,m=PC[i]?.5:.4;col[3*i]+=(cr-col[3*i])*m;col[3*i+1]+=(cg-col[3*i+1])*m;col[3*i+2]+=(cb-col[3*i+2])*m;if(selCells&&selCells.has(i)){col[3*i]+=(1-col[3*i])*.7;col[3*i+1]+=(.62-col[3*i+1])*.7;col[3*i+2]+=(.1-col[3*i+2])*.7}}fsig+=(i%9973)+1+(PC[i]?50000:0)+(FZ[i]?77777:0)+Math.round(H[i]*4)}}
  geo.attributes.color.needsUpdate=true;fsig+=ends.length*7919;if(fsig!==fsigLast){fsigLast=fsig;buildFence()}}
 syncPos();paint();
 // ---------- Kollision ----------
@@ -248,19 +232,42 @@ function updTown(dt){const k=nf,q=onFoot?P:G;mWL.material.color.setRGB(.17+.83*k
 // ---------- Pistenraupe ----------
 const g=new THREE.Group();g.rotation.order='YXZ';const rg=new THREE.Group();g.add(rg);
 const M=(w,h,d,c,x,y,z,o)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.45,metalness:.3},o||{})));m.position.set(x,y,z);m.castShadow=true;rg.add(m);return m};
-const RED=0xc8161d,BLK=0x1c1d20;
-M(3.4,.9,5,RED,0,1.35,.2);M(.95,1.15,5.6,BLK,-1.55,.58,.2);M(.95,1.15,5.6,BLK,1.55,.58,.2);
+const RED=0xc8161d,BLK=0x1c1d20,GRY=0x8a8f96;
+const bar=(a,b,w,c)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),m=new THREE.Mesh(new THREE.BoxGeometry(w,w*.9,A.distanceTo(B)),new THREE.MeshLambertMaterial({color:c}));m.position.copy(A).lerp(B,.5);m.lookAt(B);m.castShadow=true;rg.add(m);return m};
+// Laufwerk (Ketten mit Stollen)
+const gGeo=new THREE.BoxGeometry(1.05,.12,.2),gMat=new THREE.MeshStandardMaterial({color:GRY,metalness:.6,roughness:.4}),bGeo=new THREE.CylinderGeometry(.55,.55,.95,14).rotateZ(Math.PI/2),bMat=new THREE.MeshLambertMaterial({color:BLK});
+for(const sx of[-1,1]){M(.95,1.1,5.2,BLK,sx*1.55,.62,.2);
+ for(const z of[-2.4,2.8]){const e=new THREE.Mesh(bGeo,bMat);e.position.set(sx*1.55,.62,z);rg.add(e)}
+ for(let k=0;k<14;k++){const q=new THREE.Mesh(gGeo,gMat);q.position.set(sx*1.55,1.2,-2.4+k*.4);rg.add(q)}
+ M(.95,.1,5.2,BLK,sx*1.55,1.26,.2)}
 for(let k=0;k<5;k++)for(const sx of[-1,1]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.2,12).rotateZ(Math.PI/2),new THREE.MeshLambertMaterial({color:0x3a3d42}));w.position.set(sx*2.03,.5,-1.8+k*.95);rg.add(w)}
-M(2.6,.9,2.8,RED,0,2.25,1.45);
-M(2.4,1.9,2.2,0x253747,0,2.75,-1.2,{transparent:true,opacity:.75});M(2.5,.15,2.3,RED,0,3.75,-1.2);M(2.5,.9,.3,RED,0,2.25,-2.1);
-M(1.6,.18,.25,0xffd45a,0,3.9,-2.2,{emissive:0xffaa33});M(.4,.25,.2,0xfff6d0,-.9,2.2,-2.28,{emissive:0xffffee});M(.4,.25,.2,0xfff6d0,.9,2.2,-2.28,{emissive:0xffffee});
-M(4.8,1.3,.5,BLK,0,1.05,-4.1);M(3.2,.3,1.6,BLK,0,.7,-3.1);
+// Rumpf, Motorhaube, Windenhaube
+M(3.0,.75,5.0,RED,0,1.45,.3);M(2.6,.8,1.4,RED,0,1.6,-3.0);
+M(2.9,.9,3.0,RED,0,2.15,1.6);
+const cowl=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,2.9,22).rotateZ(Math.PI/2),new THREE.MeshStandardMaterial({color:RED,roughness:.45,metalness:.3}));cowl.position.set(0,2.65,1.6);cowl.scale.set(1,1.1,1.65);cowl.castShadow=true;rg.add(cowl);
+for(const sx of[-1,1])M(.03,.45,.9,0xf2f2f2,sx*1.47,2.7,1.6);
+// Kabine mit großer Verglasung
+M(2.4,1.9,2.2,0x5d8fb0,0,2.75,-1.2,{transparent:true,opacity:.5});M(2.6,.18,2.4,RED,0,3.78,-1.2);M(2.5,.9,.3,RED,0,2.25,-2.1);
+for(const sx of[-1,1])for(const z of[-2.3,-.1])M(.14,1.95,.14,RED,sx*1.2,2.8,z);
+for(let k=0;k<5;k++)M(.22,.14,.14,0xfff6d0,-.8+k*.4,3.92,-2.35,{emissive:0xffffee});
+M(.3,.18,.3,0xffa000,0,3.95,-.3,{emissive:0xff8800});
+M(.4,.25,.2,0xfff6d0,-.9,2.2,-2.28,{emissive:0xffffee});M(.4,.25,.2,0xfff6d0,.9,2.2,-2.28,{emissive:0xffffee});
+// Räumschild vorn (schwarzes Gitter mit Flügeln)
+M(4.8,1.25,.4,BLK,0,1.05,-4.3);
+for(let k=-5;k<=5;k++)M(.1,1.0,.5,0x34363b,k*.42,1.05,-4.3);
+for(const sx of[-1,1]){const w=M(.3,1.25,1.1,BLK,sx*2.5,1.05,-3.85);w.rotation.y=-sx*.45;bar([sx*.9,1.0,-2.7],[sx*1.15,1.0,-4.1],.2,BLK)}
+M(.18,.18,1.5,GRY,0,1.9,-3.55);
+// Fräse hinten + Halterung
 const till=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,4.4,10).rotateZ(Math.PI/2),new THREE.MeshLambertMaterial({color:0x888c92}));till.position.set(0,.75,4);rg.add(till);
 M(4.6,.7,1.3,BLK,0,1.3,4);M(4.6,.18,1.3,BLK,0,.25,5.1);
-const bar=(a,b,w,c)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),m=new THREE.Mesh(new THREE.BoxGeometry(w,w*.9,A.distanceTo(B)),new THREE.MeshLambertMaterial({color:c}));m.position.copy(A).lerp(B,.5);m.lookAt(B);m.castShadow=true;rg.add(m)};
-bar([0,2.9,1.4],[0,3.8,3.4],.45,RED);bar([0,3.8,3.4],[0,3.1,5.4],.4,RED);M(.4,.9,.4,BLK,0,2.9,5.3);
-for(const sx of[-1,1]){M(1.15,.1,5.6,BLK,sx*1.55,1.22,.2);M(.12,.5,.35,BLK,sx*1.5,3.1,-1.9);M(.35,.2,.15,0xff3030,sx,2,2.86,{emissive:0xaa0000});M(.35,.2,.3,0xfff6d0,sx*.8,3.9,-2.3,{emissive:0xffffee})}
-M(.2,1,.2,0x555555,.9,3.2,1);
+for(const sx of[-1,1])bar([sx*1.1,1.4,2.6],[sx*1.3,1.3,3.9],.25,BLK);
+// Seilwinden-Ausleger (rot) mit Haken
+for(const sx of[-.5,.5]){bar([sx,3.0,1.0],[sx*1.2,4.5,2.3],.3,RED);bar([sx*1.2,4.5,2.3],[sx,3.7,4.9],.28,RED)}
+bar([-.6,4.45,2.3],[.6,4.45,2.3],.25,RED);
+M(.1,.8,.1,GRY,.5,3.2,4.9);const hk=new THREE.Mesh(new THREE.TorusGeometry(.14,.03,8,14),gMat);hk.position.set(.5,2.7,4.9);rg.add(hk);
+// Lichter, Spiegel, Auspuff
+for(const sx of[-1,1]){M(.12,.5,.35,BLK,sx*1.5,3.1,-1.9);M(.35,.2,.15,0xff3030,sx,1.9,3.05,{emissive:0xaa0000});M(.35,.2,.3,0xfff6d0,sx*.8,3.9,-2.3,{emissive:0xffffee})}
+M(.2,1,.2,0x555555,.9,3.6,.6);
 const cabIn=new THREE.Group();cabIn.visible=false;rg.add(cabIn);
 const mi=(w,h,d,c,x,y,z,o)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.6},o||{})));m.position.set(x,y,z);cabIn.add(m);return m};
 mi(2.2,.5,.7,0x1a1c20,0,2.2,-1.95);mi(2.4,.08,2.2,0x30343a,0,3.65,-1.2);mi(.5,.25,.05,0x113322,.55,2.5,-1.98,{emissive:0x22aa55});mi(.76,.12,.04,0x222222,-.35,2.48,-1.94);
@@ -357,7 +364,7 @@ let loading=false,onFoot=false;const P={x:0,z:0,y:0,yaw:0},pm=new THREE.Group();
  const ht=new THREE.Mesh(new THREE.SphereGeometry(.25,10,8,0,Math.PI*2,0,Math.PI/2),new THREE.MeshStandardMaterial({color:0x2255aa}));ht.position.y=1.98;pm.add(ht)}
 pm.visible=false;scene.add(pm);
 // ---------- Zustand ----------
-let money=250000,day=1,dayT=112.5,rep='–',mode='drive',camMode='out',tool='cam',lifts=[],rests=[],guns=[],pumps=[],trafos=[],roads=[],alms=[],tanks=[];
+let money=250000,day=1,wood=0,dayT=112.5,rep='–',mode='drive',camMode='out',tool='cam',lifts=[],rests=[],guns=[],pumps=[],trafos=[],roads=[],alms=[],tanks=[];
 const DAY=900;
 const toastEl=$('toast');let tt;function toast(s){toastEl.textContent=s;toastEl.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>toastEl.style.opacity=0,1600)}
 function spend(n){if(loading)return true;if(money<n){toast('Zu wenig Geld');return false}money-=n;return true}
@@ -430,7 +437,8 @@ function updBuro(){const near=onFoot&&dist(P,BUE)<12;$('bBuro').style.display=ne
 function updFuel(){const t=nearest(tanks,G);$('bFuel').style.display=!onFoot&&mode==='drive'&&t&&dist(t,G)<22&&G.fuel<99?'':'none'}
 $('bFuel').onclick=()=>{const c=Math.round((100-G.fuel)*3);if(spend(c)){G.fuel=100;toast('Getankt für '+c+' €');tone(1)}};
 let offT=0;function updOffice(){const o=$('office');if(o.style.display==='none'||performance.now()-offT<1000)return;offT=performance.now();const r=calcDay(),on=guns.filter(u=>u.on).length;
- o.innerHTML='<b>🖥 Büro-Computer</b><br>👥 Gäste heute: '+r.guests+'<br>💶 Einnahmen (Prognose): '+(r.inc|0).toLocaleString('de-DE')+' €<br>📉 Kosten: '+r.exp.toLocaleString('de-DE')+' €<br>📈 Gewinn: '+((r.inc-r.exp)|0).toLocaleString('de-DE')+' €<br>⏱ Gewinn pro Stunde: '+(((r.inc-r.exp)/24)|0).toLocaleString('de-DE')+' €<br>⚡ Strom: '+(on*45+lifts.length*30+(nf>.3?lamps.length*2:0)+(on?pumps.length*20:0)+rests.length*8+alms.length*5)+' kW<br>💧 Wasser: '+on*40+' l/min<br>🏦 Kasse: '+Math.round(money).toLocaleString('de-DE')+' €'}
+ const hh='<b>🖥 Büro-Computer</b><br>👥 Gäste heute: '+r.guests+'<br>💶 Einnahmen (Prognose): '+(r.inc|0).toLocaleString('de-DE')+' €<br>📉 Kosten: '+r.exp.toLocaleString('de-DE')+' €<br>📈 Gewinn: '+((r.inc-r.exp)|0).toLocaleString('de-DE')+' €<br>⏱ Gewinn pro Stunde: '+(((r.inc-r.exp)/24)|0).toLocaleString('de-DE')+' €<br>⚡ Strom: '+(on*45+lifts.length*30+(nf>.3?lamps.length*2:0)+(on?pumps.length*20:0)+rests.length*8+alms.length*5)+' kW<br>💧 Wasser: '+on*40+' l/min<br>🏦 Kasse: '+Math.round(money).toLocaleString('de-DE')+' €<br>🪵 Holz: '+wood+' Stück<br><button data-buy="10">+10 Holz · 500 €</button> <button data-buy="50">+50 Holz · 2.250 €</button>';if(o._h!==hh){o._h=hh;o.innerHTML=hh}}
+$('office').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-buy]');if(!b)return;const n=+b.dataset.buy,c=n===10?500:2250;if(spend(c)){wood+=n;toast('+'+n+' Holz gekauft');offT=0;updOffice()}});
 $('bBuro').onclick=()=>{const o=$('office');o.style.display=o.style.display==='none'?'block':'none';offT=0;updOffice()};
 function showSum(d,r){const e=$('sum');e.innerHTML='<h2 style="margin:0">Tagesabschluss – Tag '+d+'</h2><div>👥 Gäste: '+r.guests+'<br>💶 Einnahmen: +'+(r.inc|0).toLocaleString('de-DE')+' €<br>📉 Kosten: −'+r.exp.toLocaleString('de-DE')+' €<br><b>Gewinn: '+((r.inc-r.exp)|0).toLocaleString('de-DE')+' €</b><br>🏦 Kasse: '+Math.round(money).toLocaleString('de-DE')+' €</div><button id="sumOk" style="background:#ff8a1f;font-size:16px;padding:10px 26px">Weiter</button>';e.style.display='flex';$('sumOk').onclick=()=>e.style.display='none'}
 function addRest(p){if(!spend(20000))return;const h=hAt(p.x,p.z),cx=((p.x+S/2)/C)|0,cz=((p.z+S/2)/C)|0;
@@ -491,10 +499,12 @@ cv.addEventListener('pointerup',pup);cv.addEventListener('pointercancel',e=>ptrs
 function tap(x,y){const p=pick(x,y);if(!p)return;
  if(tool==='cam'){let b=null,bdist=12;guns.forEach(u=>{const d=Math.hypot(u.x-p.x,u.z-p.z);if(d<bdist){bdist=d;b=u}});
   if(b){b.on=!b.on;b.pts.visible=b.on;toast(b.on?'Schneekanone AN (60 €/Tag)':'Schneekanone aus')}else selectPiste(p)}
- else if(tool==='gun')addGun(p);else if(tool==='lamp')addLamp(p);else if(tool==='rest')addRest(p);else if(tool==='lift')addLift(p);else if(tool==='pump')addPump(p);else if(tool==='trafo')addTrafo(p);else if(tool==='road')addRoad(p);else if(tool==='alm')addAlm(p);else if(tool==='tank')addTank(p);else if(tool==='tmove')moveTank(p);else if(tool==='gond')addLift(p,true);else if(tool==='deko')addDeco(p);else if(tool==='jump')addJump(p);else if(tool==='prect')addPRect(p);else applyBrush(p,true)}
-const hints={pdraw:'Mit dem Finger von oben nach unten über die Karte wischen: die Piste wird automatisch begradigt und geglättet (2 € pro Feld). Geschlossene Form wischen = Fläche',prect:'Punkte nacheinander antippen (auch Kurven). ✔ Fertig beendet die Piste, vorne und hinten bleibt sie offen. 2 € pro Feld, Breite = Pinselgröße',jump:'Schanze: Start antippen, dann Absprungrichtung antippen (8–26 m, 2.000 €). Mit dem Schneeschild wieder wegschiebbar',cam:'Ziehen: Karte verschieben · Zwei Finger: Zoom · Kanone antippen: an/aus · Piste antippen: löschen',up:'Ziehen: Gelände anheben (6 € pro Schritt)',down:'Ziehen: Gelände absenken (6 € pro Schritt)',piste:'Ziehen: Piste markieren (2 € pro Feld)',lift:'Tal- und Bergstation antippen',rest:'Platz antippen (ebnet Boden ein)',gun:'Braucht Pumpe + Trafo. Wasser- und Stromleitung (25/15 € pro m) werden automatisch gelegt',pump:'Wasserpumpe im Tal setzen (80 €/Tag)',trafo:'Trafostation setzen (60 €/Tag)',road:'Straße: Start an Talstation/Restaurant/Straßenende, dann Ziel antippen',alm:'Alm am Ende einer Straße setzen (max. 30 m Abstand)',tank:'Tankstelle setzen (Tanken: 3 € pro %)',gond:'Tal- und Bergstation antippen (Seilbahn, 120 Gäste)',deko:'Antippen: Deko setzen. Vorhandene Deko antippen: entfernen',tmove:'Tankstelle antippen, dann neuen Platz antippen',close:'Ziehen: Piste sperren (rot, keine Gäste)',open:'Ziehen: gesperrte Piste wieder öffnen',lamp:'Mast antippen: beleuchtet nachts die Piste (1.500 €, 20 €/Tag, Nachtgäste)'};
-document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tool=b.dataset.t;if(tool!=='prect')cancelPR();if(tool!=='cam')clearSel();if(b.dataset.d)decoT=b.dataset.d;document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('sel',x===b));$('info').textContent=hints[tool]});
-$('bPDel').onclick=()=>{if(!selCells)return;const n=selCells.size;selCells.forEach(i=>{PI[i]=0;PC[i]=0});
+ else if(tool==='gun')addGun(p);else if(tool==='lamp')addLamp(p);else if(tool==='rest')addRest(p);else if(tool==='lift')addLift(p);else if(tool==='pump')addPump(p);else if(tool==='trafo')addTrafo(p);else if(tool==='road')addRoad(p);else if(tool==='alm')addAlm(p);else if(tool==='tank')addTank(p);else if(tool==='tmove')moveTank(p);else if(tool==='gond')addLift(p,true);else if(tool==='deko')addDeco(p);else if(tool==='jump')addJump(p);else if(tool==='prect')addPRect(p);else if(tool==='pdraw')penSeg(p,p);else if(tool==='zaun')selectPiste(p);else applyBrush(p,true)}
+const hints={zaun:'Piste antippen, dann „Zaun bauen“. Holz kaufst du im Büro (1 Holz = ca. 8 m Zaun)',pdraw:'Mit dem Finger malen: genau das Gemalte wird Piste (2 € pro Feld). Breite stellst du links oben mit dem Regler ein',prect:'Punkte nacheinander antippen (auch Kurven). ✔ Fertig beendet die Piste, vorne und hinten bleibt sie offen. 2 € pro Feld, Breite stellst du links oben mit dem Regler ein',jump:'Schanze: Start antippen, dann Absprungrichtung antippen (8–26 m, 2.000 €). Mit dem Schneeschild wieder wegschiebbar',cam:'Ziehen: Karte verschieben · Zwei Finger: Zoom · Kanone antippen: an/aus · Piste antippen: löschen',up:'Ziehen: Gelände anheben (6 € pro Schritt)',down:'Ziehen: Gelände absenken (6 € pro Schritt)',piste:'Ziehen: Piste markieren (2 € pro Feld)',lift:'Tal- und Bergstation antippen',rest:'Platz antippen (ebnet Boden ein)',gun:'Braucht Pumpe + Trafo. Wasser- und Stromleitung (25/15 € pro m) werden automatisch gelegt',pump:'Wasserpumpe im Tal setzen (80 €/Tag)',trafo:'Trafostation setzen (60 €/Tag)',road:'Straße: Start an Talstation/Restaurant/Straßenende, dann Ziel antippen',alm:'Alm am Ende einer Straße setzen (max. 30 m Abstand)',tank:'Tankstelle setzen (Tanken: 3 € pro %)',gond:'Tal- und Bergstation antippen (Seilbahn, 120 Gäste)',deko:'Antippen: Deko setzen. Vorhandene Deko antippen: entfernen',tmove:'Tankstelle antippen, dann neuen Platz antippen',close:'Ziehen: Piste sperren (rot, keine Gäste)',open:'Ziehen: gesperrte Piste wieder öffnen',lamp:'Mast antippen: beleuchtet nachts die Piste (1.500 €, 20 €/Tag, Nachtgäste)'};
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tool=b.dataset.t;if(tool!=='prect')cancelPR();clearSel();if(b.dataset.d)decoT=b.dataset.d;document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('sel',x===b));$('info').textContent=hints[tool]});
+$('bPFence').onclick=()=>{if(!selCells)return;const need=Math.ceil(fenceEdges(selCells)/2);if(need<1){toast('Hier gibt es nichts zu zäunen');clearSel();return}if(wood<need){toast('Zu wenig Holz ('+wood+'/'+need+') – im Büro kaufen');return}wood-=need;selCells.forEach(i=>FZ[i]=1);clearSel();dirtyC=true;toast('Zaun gebaut (−'+need+' Holz)')};
+$('pwR').oninput=()=>{PW=+$('pwR').value;$('pwT').textContent='Breite: '+PW+' m'};
+$('bPDel').onclick=()=>{if(!selCells)return;const n=selCells.size;selCells.forEach(i=>{PI[i]=0;PC[i]=0;FZ[i]=0});
  for(let k=ends.length-1;k>=0;k--){const e=ends[k],ex=Math.round((e.x+S/2)/C),ez=Math.round((e.z+S/2)/C);let hit=false;for(let dz=-2;dz<=2&&!hit;dz++)for(let dx=-2;dx<=2;dx++){const x=ex+dx,z=ez+dz;if(x>=0&&z>=0&&x<=N&&z<=N&&selCells.has(z*V+x)){hit=true;break}}if(hit)ends.splice(k,1)}
  money+=n*2;clearSel();dirtyC=true;toast('Piste gelöscht, +'+(n*2).toLocaleString('de-DE')+' €')};
 $('bPDone').onclick=()=>{cancelPR();toast('Piste fertig')};
@@ -560,7 +570,7 @@ const fv=new THREE.Vector3(),tmp=new THREE.Vector3();let last=performance.now(),
 let __bad=0,__last='',lastMode='';
 function loop(now){requestAnimationFrame(loop);try{loop2(now);__bad=0}catch(e){__bad++;const m=(e&&e.message||String(e));if(m!==__last){__last=m;console.error(e);window.__diagBox&&window.__diagBox('Spielschleife: '+m+' | '+String(e&&e.stack||'').split('\n')[1])}
  if(__bad===60){try{const b=localStorage.getItem(KEY);if(b)localStorage.setItem(KEY+'_defekt',b);localStorage.removeItem(KEY)}catch(_){}if(!sessionStorage.getItem('sk_reload2')){sessionStorage.setItem('sk_reload2','1');location.reload()}}}}
-function loop2(now){if(mode!==lastMode){lastMode=mode;dirtyC=true}const dt=Math.min(.05,(now-last)/1000);last=now;tm+=dt;
+function loop2(now){{const sh=mode==='build'&&(tool==='pdraw'||tool==='prect');if(sh!==pwShown){pwShown=sh;$('pw').style.display=sh?'flex':'none'}}if(mode!==lastMode){lastMode=mode;dirtyC=true}const dt=Math.min(.05,(now-last)/1000);last=now;tm+=dt;
  let ix=jx,iy=jy;if(!jp){ix=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);iy=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0)}
  if(mode==='build'){ix=iy=0}
  let wx=0,wy=0;if(onFoot){wx=ix;wy=iy;ix=iy=0}
@@ -634,20 +644,20 @@ const KEY='skigebiet_v1';
 const enc=a=>{const u=new Uint8Array(a.buffer,a.byteOffset,a.byteLength);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
 const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer)};
 function save(quiet){if(typeof started!=='undefined'&&!started)return;try{const sp16=new Int16Array(V*V),h16=new Int16Array(V*V),s8=new Uint8Array(V*V),g8=new Uint8Array(V*V);for(let i=0;i<V*V;i++){h16[i]=Math.round(H[i]*100);sp16[i]=Math.round(SP[i]*100);s8[i]=Math.round(SN[i]*255);g8[i]=Math.round(GR[i]*255)}
- localStorage.setItem(KEY,JSON.stringify({ver:2,money,day,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),tanks:tanks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon?1:0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z]),ends:ends.map(e=>[e.x,e.z,e.ux,e.uz,e.hw])}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
+ localStorage.setItem(KEY,JSON.stringify({ver:2,money,day,wood,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),FZ:enc(FZ),tanks:tanks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon?1:0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z]),ends:ends.map(e=>[e.x,e.z,e.ux,e.uz,e.hw])}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
 function load(){try{const j=localStorage.getItem(KEY);if(!j)return;const d=JSON.parse(j);loading=true;
  const kk=d.K?dec(d.K,Uint8Array):null,h=dec(d.H,Int16Array),s=dec(d.S,Uint8Array),r=dec(d.R,Uint8Array),p=dec(d.I,Uint8Array);
- for(let i=0;i<V*V;i++){H[i]=h[i]/100;SN[i]=s[i]/255;GR[i]=r[i]/255;PI[i]=p[i];PC[i]=kk?kk[i]:0}if(d.ver!==2)for(let iz=0;iz<V;iz++){const b=cl((iz*C-S/2-360)/50,0,1),sb=b*b*(3-2*b);if(sb>0)for(let ix=0;ix<V;ix++){const i=iz*V+ix;H[i]=H[i]*(1-sb)+3*sb}}if(d.SP){const q=dec(d.SP,Int16Array);for(let i=0;i<V*V;i++)SP[i]=q[i]/100}
+ for(let i=0;i<V*V;i++){H[i]=h[i]/100;SN[i]=s[i]/255;GR[i]=r[i]/255;PI[i]=p[i];PC[i]=kk?kk[i]:0}if(d.FZ){const fz=dec(d.FZ,Uint8Array);for(let i=0;i<V*V;i++)FZ[i]=fz[i]}if(d.ver!==2)for(let iz=0;iz<V;iz++){const b=cl((iz*C-S/2-360)/50,0,1),sb=b*b*(3-2*b);if(sb>0)for(let ix=0;ix<V;ix++){const i=iz*V+ix;H[i]=H[i]*(1-sb)+3*sb}}if(d.SP){const q=dec(d.SP,Int16Array);for(let i=0;i<V*V;i++)SP[i]=q[i]/100}
  (d.ends||[]).forEach(a=>ends.push({x:a[0],z:a[1],ux:a[2],uz:a[3],hw:a[4]}));(d.pumps||[]).forEach(a=>addPump({x:a[0],z:a[1]}));(d.trafos||[]).forEach(a=>addTrafo({x:a[0],z:a[1]}));
  (d.tanks||[]).forEach(a=>addTank({x:a[0],z:a[1]},true));
  d.guns.forEach(a=>{addGun({x:a[0],z:a[1]});if(a[2]){const u=guns[guns.length-1];u.on=true;u.pts.visible=true}});
  d.rests.forEach(a=>addRest({x:a[0],z:a[1]}));(d.lamps||[]).forEach(a=>addLamp({x:a[0],z:a[1]}));
  d.lifts.forEach(a=>{liftA=null;addLift(new THREE.Vector3(a[0],0,a[1]));addLift(new THREE.Vector3(a[2],0,a[3]),a[4])});(d.decos||[]).forEach(a=>{decoT=a[0];addDeco({x:a[1],z:a[2]})});decoT='tree';
  (d.roads||[]).forEach(a=>{roadA=null;addRoad({x:a[0],z:a[1],clone(){return this}});addRoad({x:a[2],z:a[3]})});(d.alms||[]).forEach(a=>addAlm({x:a[0],z:a[1]}));
- money=d.money;day=d.day;Object.assign(G,d.G);if(d.F)for(const k in d.F)if(FL[k])FL[k]={x:d.F[k][0],z:d.F[k][1],yaw:d.F[k][2],fuel:d.F[k][3]};dirtyG=dirtyC=true;loading=false;toast('Spielstand geladen')}catch(e){loading=false;console.error('Laden fehlgeschlagen',e);try{const bad=localStorage.getItem(KEY);if(bad){localStorage.setItem(KEY+'_defekt',bad);localStorage.removeItem(KEY)}}catch(_){}if(!sessionStorage.getItem('sk_reload')){sessionStorage.setItem('sk_reload','1');location.reload();throw new Error('reload')}}}
+ money=d.money;day=d.day;wood=d.wood||0;Object.assign(G,d.G);if(d.F)for(const k in d.F)if(FL[k])FL[k]={x:d.F[k][0],z:d.F[k][1],yaw:d.F[k][2],fuel:d.F[k][3]};dirtyG=dirtyC=true;loading=false;toast('Spielstand geladen')}catch(e){loading=false;console.error('Laden fehlgeschlagen',e);try{const bad=localStorage.getItem(KEY);if(bad){localStorage.setItem(KEY+'_defekt',bad);localStorage.removeItem(KEY)}}catch(_){}if(!sessionStorage.getItem('sk_reload')){sessionStorage.setItem('sk_reload','1');location.reload();throw new Error('reload')}}}
 $('bSave').onclick=()=>save(false);setInterval(()=>save(true),30000);document.addEventListener('visibilitychange',()=>{if(document.hidden)save(true)});addEventListener('pagehide',()=>save(true));
 if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}}
 let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v12</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v14</div></body></html>
