@@ -162,10 +162,24 @@ function liftTop(l){const t=performance.now();if(l._tt&&t-l._tt<3000)return l.to
  for(let dz=-10;dz<=10;dz++)for(let dx=-10;dx<=10;dx++){const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i])continue;const x=jx*C-S/2,z=jz*C-S/2,d=Math.hypot(x-l.B.x,z-l.B.z);if(d<bd){bd=d;l.top={x,z}}}
  return l.top}
 function resStatus(){if(!lifts.length)return{ok:false,msg:'Es gibt noch keinen Lift / keine Gondel.'};if(!lifts.some(l=>liftTop(l)))return{ok:false,msg:'An keiner Bergstation beginnt eine Piste (Piste bis ca. 40 m an die Bergstation malen).'};return{ok:true,msg:'Bereit'}}
-function curPot(){const r=calcDay(),cap=lifts.reduce((a,l)=>a+(l.cap||60),0),pf=Math.max(.2,Math.min(1.4,1.6-skiPrice/40));return Math.min(r.gp*.8,cap*1.5)*pf}
+function curPot(){const r=calcDay(),cap=lifts.reduce((a,l)=>a+(l.cap||60),0),pf=Math.max(.2,Math.min(1.4,1.6-skiPrice/40));return Math.min(r.gp*.8,cap*1.5)*pf*(1+.12*cntStaff('mkt'))}
 function onP(x,z){const ix=Math.round((x+S/2)/C),iz=Math.round((z+S/2)/C);if(ix<0||iz<0||ix>N||iz>N)return false;const i=iz*V+ix;return !!PI[i]&&!PC[i]}
+// Flussfeld: kürzester Pistenweg zur Nähe jeder Talstation (verhindert Kreisfahren)
+let ffD=null,ffT=0,ffQ=null;
+function flowField(){const now=performance.now();if(ffD&&now-ffT<6000)return ffD;ffT=now;if(!ffD){ffD=new Int32Array(V*V);ffQ=new Int32Array(V*V)}const D=ffD,Q=ffQ;D.fill(-1);let qh=0,qt=0;
+ for(const l of lifts){const ix=Math.round((l.A.x+S/2)/C),iz=Math.round((l.A.z+S/2)/C);let bd=1e9,bi=-1;
+  for(let dz=-15;dz<=15;dz++)for(let dx=-15;dx<=15;dx++){const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i])continue;const d=Math.hypot(dx,dz);if(d<bd){bd=d;bi=i}}
+  if(bi<0)continue;const bx=bi%V,bz=(bi/V)|0;
+  for(let dz=-3;dz<=3;dz++)for(let dx=-3;dx<=3;dx++){const jx=bx+dx,jz=bz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(PI[i]&&!PC[i]&&D[i]<0){D[i]=0;Q[qt++]=i}}}
+ while(qh<qt){const i=Q[qh++],x=i%V,z=(i/V)|0,d=D[i]+1;
+  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=x+dx,jz=z+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const j=jz*V+jx;if(D[j]>=0||!PI[j]||PC[j])continue;D[j]=d;Q[qt++]=j}}
+ return D}
 function nextFrom(x,z,rc){const ix=Math.round((x+S/2)/C),iz=Math.round((z+S/2)/C),cur=hAt(x,z);let best=null;
- for(const up of [.2,1.2]){let bh=cur+up;
+ if(ix>=0&&iz>=0&&ix<=N&&iz<=N){const D=flowField(),di=iz*V+ix,dc=D[di];
+  if(dc===0)return null;
+  if(dc>0){let bh=1e9,bdd=dc;for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(D[i]<0||!PI[i]||PC[i])continue;const X=jx*C-S/2,Z=jz*C-S/2,h=hAt(X,Z);if(D[i]<bdd||(D[i]===bdd&&best&&h<bh)){bdd=D[i];bh=h;best={x:X,z:Z,i}}}
+   if(best)return best}}
+ for(const up of [.2,.8]){let bh=cur+up;
   for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i]||rc.includes(i))continue;const X=jx*C-S/2,Z=jz*C-S/2,h=hAt(X,Z);if(h<bh){bh=h;best={x:X,z:Z,i}}}
   if(best)break}
  if(best){rc.push(best.i);if(rc.length>14)rc.shift()}return best}
@@ -245,12 +259,43 @@ function updAgents(dt){
  if(wD&&now-wT>3000){wT=now;wD=false;dirtyC=true}
  if(worn>=15&&now-lastWear>180000){lastWear=now;toast('⚠ Skipiste sehr abgenutzt – bitte mit der Pistenraupe präparieren!')}
  drawAgents()}
+// ---------- Personal (Mitarbeiter) ----------
+const STAFF_T={groom:{ic:'🚜',n:'Pistenfahrer',w:300,fee:8000,d:'Fährt selbstständig mit einer eigenen Pistenraupe und präpariert abgenutzte Pisten (nachts und vor der Öffnung). Einmalig 8.000 € für die Raupe.'},snow:{ic:'❄',n:'Schneetechniker',w:220,fee:500,d:'Schaltet alle Schneekanonen automatisch nachts an (17–8 Uhr) und tagsüber aus.'},mkt:{ic:'📣',n:'Marketing',w:250,fee:500,d:'Wirbt für dein Skigebiet: +12 % Gäste pro Mitarbeiter.'}};
+let staff=[],staffId=1,staffGunWant=null;
+const cntStaff=t=>staff.filter(q=>q.t===t).length,staffCost=()=>staff.reduce((a,q)=>a+STAFF_T[q.t].w,0);
+function hireStaff(t,n,quiet){const T=STAFF_T[t];if(!T)return;if(cntStaff(t)>=3){toast('Maximal 3 Mitarbeiter pro Beruf');return}if(!quiet&&!spend(T.fee))return;
+ const F=['Hans','Sepp','Franz','Peter','Tobias','Lukas','Anna','Lena','Maria','Sabine','Klaus','Eva'],L=['Huber','Gruber','Bauer','Moser','Berger','Wagner','Pichler','Steiner'];
+ staff.push({id:staffId++,t,n:n||(F[(Math.random()*F.length)|0]+' '+L[(Math.random()*L.length)|0]),m:null,x:0,z:0,yaw:Math.PI,v:0,tg:null,scan:0,gt:0,tt:0,bx:1e9,bz:1e9});if(!quiet)toast(T.n+' eingestellt ('+eur(T.w)+' €/Tag)')}
+function fireStaff(id){const k=staff.findIndex(q=>q.id===id);if(k<0)return;const q=staff[k];if(q.m)scene.remove(q.m);staff.splice(k,1);toast(q.n+' gekündigt')}
+function staffFind(s){let best=null,bd=1e18;const R=S/2;for(let i=0;i<V*V;i++){if(!PI[i]||PC[i]||SN[i]<=.3||(GR[i]>=.5&&WR[i]<=.3))continue;const x=(i%V)*C-R,z=((i/V)|0)*C-R;
+  if((x-s.bx)*(x-s.bx)+(z-s.bz)*(z-s.bz)<144)continue;let cl2=false;for(const o of staff)if(o!==s&&o.tg!=null){const ox=(o.tg%V)*C-R,oz=((o.tg/V)|0)*C-R;if((x-ox)*(x-ox)+(z-oz)*(z-oz)<400){cl2=true;break}}if(cl2)continue;
+  const d=(x-s.x)*(x-s.x)+(z-s.z)*(z-s.z);if(d<bd){bd=d;best=i}}return best}
+function updStaff(dt){if(!staff.length&&staffGunWant===null)return;const h=hourNow(),night=h>=17||h<8;
+ if(cntStaff('snow')){if(staffGunWant!==night){staffGunWant=night;guns.forEach(u=>{u.on=night;u.pts.visible=night})}}else staffGunWant=null;
+ const work=h>=16.5||h<8||!resOpen,hb=(typeof BUE!=='undefined'&&BUE)?BUE:{x:-26,z:473};let gi=0;
+ for(const s of staff){if(s.t!=='groom')continue;const home={x:hb.x+34+gi*9,z:hb.z+18};gi++;
+  if(!s.m){const m=VG.raupe.clone(true);const ls=[];m.traverse(o=>{if(o.isLight)ls.push(o)});ls.forEach(o=>o.parent&&o.parent.remove(o));m.visible=true;scene.add(m);s.m=m;s.x=home.x;s.z=home.z}
+  let tx=home.x,tz=home.z,go=false;
+  if(work){if(s.tg!=null&&(GR[s.tg]>=.85||!PI[s.tg]||PC[s.tg]||SN[s.tg]<=.3)){s.tg=null}
+   if(s.tg!=null){s.tt+=dt;if(s.tt>25){s.bx=(s.tg%V)*C-S/2;s.bz=((s.tg/V)|0)*C-S/2;s.tg=null}}
+   s.scan-=dt;if(s.tg==null&&s.scan<=0){s.scan=.7;s.tg=staffFind(s);s.tt=0}
+   if(s.tg!=null){tx=(s.tg%V)*C-S/2;tz=((s.tg/V)|0)*C-S/2;go=true}}
+  const dx=tx-s.x,dz=tz-s.z,dist=Math.hypot(dx,dz);let sp=0;
+  if(go||dist>3){const want=Math.atan2(-dx,-dz);let d=want-s.yaw;while(d>Math.PI)d-=6.283;while(d<-Math.PI)d+=6.283;s.yaw+=Math.max(-1.6*dt,Math.min(1.6*dt,d));sp=Math.abs(d)<.6?(go?6.5:5):1.5;if(!go&&dist<8)sp=Math.min(sp,2)}
+  s.v+=(sp-s.v)*Math.min(1,dt*2);const f=Math.sin(s.yaw),h2=Math.cos(s.yaw),fx=-f,fz=-h2,rx=h2,rz=-f;
+  s.x=cl(s.x+fx*s.v*dt,-S/2+6,S/2-6);s.z=cl(s.z+fz*s.v*dt,-S/2+6,S/2-6);if(push(s,2.4))s.v*=.6;
+  if(!go&&dist<3){s.v*=.9}
+  const g=s.m;g.position.set(s.x,hAt(s.x,s.z)+.1,s.z);g.rotation.y=s.yaw;g.rotation.x=Math.atan2(hAt(s.x+fx*3,s.z+fz*3)-hAt(s.x-fx*3,s.z-fz*3),6);g.rotation.z=Math.atan2(hAt(s.x+rx*2,s.z+rz*2)-hAt(s.x-rx*2,s.z-rz*2),4);
+  if(go&&s.v>.3){const bx=s.x-fx*4.5,bz=s.z-fz*4.5,cx=((bx+S/2)/C)|0,cz=((bz+S/2)/C)|0;
+   for(let dz2=-3;dz2<=3;dz2++)for(let dx2=-3;dx2<=3;dx2++){const a=cx+dx2,b=cz+dz2;if(a<0||b<0||a>N||b>N||Math.hypot(dx2,dz2)*C>4.5)continue;const i=b*V+a;if(SN[i]>.3&&PI[i]){GR[i]=Math.min(1,GR[i]+dt*2.5);if(WR[i]>0){if(WR[i]>=1)worn--;WR[i]=0}}}
+   dirtyC=true;s.gt-=dt;if(s.gt<=0){s.gt=.2;groomTr(bx,bz,3.4)}}}}
 // ---------- Büro-Computer (Oberfläche) ----------
 let pcH='';
 function openPC(){$('pcui').style.display='flex';pcApp='desk';renderPC(true)}
 function pcAct(a){if(a==='close'){$('pcui').style.display='none';return}
  if(a==='toggle'){if(!resOpen){const st=resStatus();if(!st.ok){toast(st.msg);return}resOpen=true;toast('Skigebiet geöffnet – Gäste kommen')}else{resOpen=false;toast('Skigebiet geschlossen')}drawPCscr()}
  else if(a==='pm')skiPrice=Math.max(5,skiPrice-5);else if(a==='pp')skiPrice=Math.min(100,skiPrice+5);
+ else if(a.startsWith('hire:'))hireStaff(a.slice(5));else if(a.startsWith('fire:'))fireStaff(+a.slice(5));
  else if(a==='b10'||a==='b50'){const n=a==='b10'?10:50,c=n===10?500:2250;if(spend(c)){wood+=n;toast('+'+n+' Holz bestellt')}}
  renderPC(true)}
 function renderPC(force){const o=$('pcui');if(o.style.display==='none')return;
@@ -258,8 +303,9 @@ function renderPC(force){const o=$('pcui');if(o.style.display==='none')return;
  const sk=agents.filter(a=>a.st==='ski').length,rd=agents.filter(a=>a.st==='ride').length,wt=agents.length-sk-rd;
  const strom=lifts.length*100+trafos.length*60+lamps.length*20+rests.length*80,wasser=pumps.length*80+on*60,sonst=r.exp-strom-wasser,back='<button data-app="desk">← Desktop</button>';
  const row=(a,b)=>'<tr><td>'+a+'</td><td>'+b+'</td></tr>';let b='';
- if(pcApp==='desk')b='<div class="pcg">'+[['offen','🎿','Skigebiet',resOpen?'GEÖFFNET':'geschlossen'],['holz','🪵','Holz',wood+' Stück'],['strom','⚡','Strom',kw+' kW'],['wasser','💧','Wasser',lw+' l/min'],['tag','📊','Tagesbericht',''],['besucher','👥','Besucher',agents.length+' im Gebiet']].map(a=>'<button class="pci" data-app="'+a[0]+'"><span>'+a[1]+'</span>'+a[2]+'<small>'+a[3]+'</small></button>').join('')+'</div>';
+ if(pcApp==='desk')b='<div class="pcg">'+[['offen','🎿','Skigebiet',resOpen?'GEÖFFNET':'geschlossen'],['holz','🪵','Holz',wood+' Stück'],['strom','⚡','Strom',kw+' kW'],['wasser','💧','Wasser',lw+' l/min'],['tag','📊','Tagesbericht',''],['besucher','👥','Besucher',agents.length+' im Gebiet'],['staff','👷','Personal',staff.length+' Mitarbeiter']].map(a=>'<button class="pci" data-app="'+a[0]+'"><span>'+a[1]+'</span>'+a[2]+'<small>'+a[3]+'</small></button>').join('')+'</div>';
  else if(pcApp==='offen')b=back+'<h3>🎿 Skigebiet</h3>Status: <b>'+(resOpen?'🟢 GEÖFFNET':'🔴 geschlossen')+'</b><br><button data-act="toggle" style="font-size:16px;padding:10px 18px;margin:8px 0;background:'+(resOpen?'#a33':'#2a8a4a')+'">'+(resOpen?'Skigebiet schließen':'Skigebiet öffnen')+'</button><br>Skipass-Preis: <button data-act="pm">−</button> <b>'+skiPrice+' €</b> <button data-act="pp">+</button><br><small>Gäste kaufen den Skipass an der Talstation, fahren mit Lift oder Gondel hoch und fahren nur auf deinen Pisten ab. Öffnungszeit 8:00–16:30 Uhr. Je günstiger der Pass, desto mehr Gäste.</small><br>'+(st.ok?'✅ Bereit zum Öffnen':'⚠️ '+st.msg);
+ else if(pcApp==='staff')b=back+'<h3>👷 Personal</h3><small>Gehälter werden am Tagesende abgebucht. Max. 3 pro Beruf.</small><table>'+Object.keys(STAFF_T).map(k=>{const T=STAFF_T[k];return row(T.ic+' <b>'+T.n+'</b><br><small>'+T.d+'</small>',cntStaff(k)+'/3 · '+eur(T.w)+' €/Tag<br><button data-act="hire:'+k+'">Einstellen · '+eur(T.fee)+' €</button>')}).join('')+'</table>'+(staff.length?'<h3>Dein Team</h3><table>'+staff.map(q=>row(STAFF_T[q.t].ic+' '+q.n+'<br><small>'+STAFF_T[q.t].n+'</small>','<button data-act="fire:'+q.id+'">Kündigen</button>')).join('')+'</table>':'')+'Lohnkosten pro Tag: <b>'+eur(staffCost())+' €</b>';
  else if(pcApp==='holz')b=back+'<h3>🪵 Holz nachbestellen</h3>Im Lager: <b>'+wood+' Stück</b> (1 Holz ≈ 8 m Zaun)<br><button data-act="b10" style="margin:6px 4px 0 0">+10 Holz · 500 €</button><button data-act="b50" style="margin-top:6px">+50 Holz · 2.250 €</button>';
  else if(pcApp==='strom')b=back+'<h3>⚡ Strom</h3><table>'+row('Schneekanonen',kwG+' kW')+row('Lifte / Gondeln',kwL+' kW')+row('Beleuchtung',kwB+' kW')+row('Pumpen',kwP+' kW')+row('Gastronomie',kwR+' kW')+row('<b>Gesamt</b>','<b>'+kw+' kW</b>')+row('Stromkosten pro Tag','<b>'+eur(strom)+' €</b>')+'</table>';
  else if(pcApp==='wasser')b=back+'<h3>💧 Wasser</h3><table>'+row('Verbrauch (Kanonen an)',lw+' l/min')+row('Pumpen',pumps.length)+row('Wasserkosten pro Tag','<b>'+eur(wasser)+' €</b>')+'</table>';
@@ -844,7 +890,7 @@ $('go').onclick=()=>$('intro').remove();if(sessionStorage.getItem('sk_skipintro'
 
 // ---------- Wirtschaft ----------
 function calcDay(){let gp=0;for(let i=0;i<V*V;i++)if(PI[i]&&!PC[i]&&GR[i]>.5&&SN[i]>.75)gp++;
- const guests=ticketsToday,eat=Math.min((rests.length+alms.length)*80,guests*.5),extra=eat*30+(guests?nightG()*14+alms.length*400:0),inc=revToday+extra,on=guns.filter(u=>u.on).length,exp=50+pumps.length*80+trafos.length*60+roads.length*30+alms.length*120+lifts.length*100+rests.length*80+on*60+lamps.length*20;
+ const guests=ticketsToday,eat=Math.min((rests.length+alms.length)*80,guests*.5),extra=eat*30+(guests?nightG()*14+alms.length*400:0),inc=revToday+extra,on=guns.filter(u=>u.on).length,exp=50+pumps.length*80+trafos.length*60+roads.length*30+alms.length*120+lifts.length*100+rests.length*80+on*60+lamps.length*20+staffCost();
  return{gp,guests,inc,exp,eat,extra}}
 function newDay(){const r=calcDay(),{gp,guests,inc,exp}=r;money+=r.extra-exp;rep=gp?`${guests} Gäste`:'keine Gäste';
  for(let i=0;i<V*V;i++)if(GR[i]>0)GR[i]*=PI[i]&&guests?.85:.97;dirtyC=true;
@@ -887,7 +933,7 @@ const fx=-f,fz=-h2,rx=h2,rz=-f;
   for(let dz=-6;dz<=6;dz++)for(let dx=-6;dx<=6;dx++){const a=cx+dx,b=cz+dz;if(a<0||b<0||a>N||b>N)continue;const d=Math.hypot(dx,dz)*C;if(d<14)SN[b*V+a]=Math.min(1,SN[b*V+a]+dt*.012*(1-d/14))}
   for(let k=0;k<36;k++){const t=((tm*.8+k/36+u.seed)%1);const dd=1+t*14;u.pp[3*k]=u.x+fx*dd+Math.sin(k*7.3)*1.2*t;u.pp[3*k+1]=u.y+4.2+t*7-t*t*13;u.pp[3*k+2]=u.z+fz*dd+Math.cos(k*5.1)*1.2*t}
   u.pts.geometry.attributes.position.needsUpdate=true;dirtyC=true;{const ax=((u.x+fx*12+S/2)/C)|0,az=((u.z+fz*12+S/2)/C)|0;for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const a=ax+dx,b=az+dz;if(a<1||b<1||a>=N||b>=N)continue;const d=Math.hypot(dx,dz)*C;if(d<8){const i=b*V+a;SP[i]=Math.min(7,SP[i]+dt*.05*(1-d/8))}}if(Math.floor(tm*2)!==Math.floor((tm-dt)*2))dirtyG=true}});
- updLift(dt);
+ updLift(dt);updStaff(dt);
  updTown(dt);dayT+=dt;if(dayT>=DAY){dayT-=DAY;newDay()}updSound(dt);
  if(dirtyG&&now-lastG>80){syncPos();dirtyG=false;dirtyC=true;lastG=now}
  if(dirtyC&&now-lastC>160){paint();dirtyC=false;lastC=now}
@@ -976,11 +1022,11 @@ const KEY='skigebiet_v1';
 const enc=a=>{const u=new Uint8Array(a.buffer,a.byteOffset,a.byteLength);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
 const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer)};
 function save(quiet){if(typeof started!=='undefined'&&!started)return;try{const sp16=new Int16Array(V*V),h16=new Int16Array(V*V),s8=new Uint8Array(V*V),g8=new Uint8Array(V*V);for(let i=0;i<V*V;i++){h16[i]=Math.round(H[i]*100);sp16[i]=Math.round(SP[i]*100);s8[i]=Math.round(SN[i]*255);g8[i]=Math.round(GR[i]*255)}
- (snapCap?(v=>{snapStr=v}):(v=>localStorage.setItem(KEY,v)))(JSON.stringify({ver:2,money,day,wood,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),FZ:enc(FZ),tanks:tanks.map(r=>[r.x,r.z]),parks:parks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0,u.dir||0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),tc:tanks.map(t=>{const b=BUILT.find(q=>q.it===t);return b?b.cost:0}),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon||0,l.stop?1:0,l.gon&&l.pylH?l.pylH():0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z]),ends:ends.map(e=>[e.x,e.z,e.ux,e.uz,e.hw]),res:[resOpen?1:0,skiPrice,ticketsToday,Math.round(revToday)]}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
+ (snapCap?(v=>{snapStr=v}):(v=>localStorage.setItem(KEY,v)))(JSON.stringify({ver:2,money,day,wood,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),FZ:enc(FZ),tanks:tanks.map(r=>[r.x,r.z]),parks:parks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0,u.dir||0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),tc:tanks.map(t=>{const b=BUILT.find(q=>q.it===t);return b?b.cost:0}),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon||0,l.stop?1:0,l.gon&&l.pylH?l.pylH():0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z]),ends:ends.map(e=>[e.x,e.z,e.ux,e.uz,e.hw]),staff:staff.map(q=>[q.t,q.n]),res:[resOpen?1:0,skiPrice,ticketsToday,Math.round(revToday)]}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
 function load(){try{const j=localStorage.getItem(KEY);if(!j)return;const d=JSON.parse(j);loading=true;
  const kk=d.K?dec(d.K,Uint8Array):null,h=dec(d.H,Int16Array),s=dec(d.S,Uint8Array),r=dec(d.R,Uint8Array),p=dec(d.I,Uint8Array);
  for(let i=0;i<V*V;i++){H[i]=h[i]/100;SN[i]=s[i]/255;GR[i]=r[i]/255;PI[i]=p[i];PC[i]=kk?kk[i]:0}if(d.FZ){const fz=dec(d.FZ,Uint8Array);for(let i=0;i<V*V;i++)FZ[i]=fz[i]}if(d.ver!==2)for(let iz=0;iz<V;iz++){const b=cl((iz*C-S/2-360)/50,0,1),sb=b*b*(3-2*b);if(sb>0)for(let ix=0;ix<V;ix++){const i=iz*V+ix;H[i]=H[i]*(1-sb)+3*sb}}if(d.SP){const q=dec(d.SP,Int16Array);for(let i=0;i<V*V;i++)SP[i]=q[i]/100}
- if(d.res){resOpen=!!d.res[0];skiPrice=d.res[1]||25;ticketsToday=d.res[2]||0;revToday=d.res[3]||0}(d.ends||[]).forEach(a=>ends.push({x:a[0],z:a[1],ux:a[2],uz:a[3],hw:a[4]}));(d.pumps||[]).forEach(a=>addPump({x:a[0],z:a[1]}));(d.trafos||[]).forEach(a=>addTrafo({x:a[0],z:a[1]}));
+ (d.staff||[]).forEach(a=>hireStaff(a[0],a[1],true));if(d.res){resOpen=!!d.res[0];skiPrice=d.res[1]||25;ticketsToday=d.res[2]||0;revToday=d.res[3]||0}(d.ends||[]).forEach(a=>ends.push({x:a[0],z:a[1],ux:a[2],uz:a[3],hw:a[4]}));(d.pumps||[]).forEach(a=>addPump({x:a[0],z:a[1]}));(d.trafos||[]).forEach(a=>addTrafo({x:a[0],z:a[1]}));
  (d.tanks||[]).forEach(a=>addTank({x:a[0],z:a[1]},true));tanks.forEach((t,i)=>{const b=BUILT.find(q=>q.it===t);if(b)b.cost=d.tc?(d.tc[i]||0):(i>0?2500:0)});(d.parks||[]).forEach(a=>addPark({x:a[0],z:a[1]}));
  d.guns.forEach(a=>{addGun({x:a[0],z:a[1]});const u=guns[guns.length-1];u.dir=a[3]||0;u.m.rotation.y=u.dir;if(a[2]){u.on=true;u.pts.visible=true}});
  d.rests.forEach(a=>addRest({x:a[0],z:a[1]}));(d.lamps||[]).forEach(a=>addLamp({x:a[0],z:a[1]}));
@@ -1008,4 +1054,4 @@ let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 try{const c=JSON.parse(sessionStorage.getItem('sk_cam')||'null');if(c){sessionStorage.removeItem('sk_cam');bf.x=c[0];bf.z=c[1];bd=c[2];$('bBuild').onclick();const ct=CATS.find(x=>x[2].includes(c[3]));if(ct)showCat(ct[0]);const tb=document.querySelector('#row [data-t="'+c[3]+'"]');if(tb)tb.click()}}catch(_){}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.12</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.14</div></body></html>
