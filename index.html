@@ -151,10 +151,10 @@ function selectPiste(p){
  if(tool==='zaun'){const need=Math.ceil(fenceEdges(set)/2),d=$('bPFence');d.textContent='🚧 Zaun bauen ('+need+' Holz, du hast '+wood+')';d.style.display='';$('bPDel').style.display='none'}
  else{const d=$('bPDel');d.textContent='🗑 Piste löschen (+'+(set.size*2).toLocaleString('de-DE')+' €)';d.style.display='';$('bPFence').style.display='none'}}
 // ---------- Gäste ----------
-const AGMAX=90,agM=(geo,n)=>{const m=new THREE.InstancedMesh(geo,new THREE.MeshLambertMaterial({color:0xffffff}),n);m.frustumCulled=false;m.count=0;m.castShadow=true;scene.add(m);return m},
+const AGMAX=90,agM=(geo,n)=>{const m=new THREE.InstancedMesh(geo,new THREE.MeshLambertMaterial({color:0xffffff}),n);m.frustumCulled=false;m.count=0;m.castShadow=true;m.setColorAt(0,new THREE.Color(1,1,1));scene.add(m);return m},
 agP={legs:agM(new THREE.BoxGeometry(.17,.8,.2).translate(0,-.4,0),AGMAX*2),torso:agM(new THREE.BoxGeometry(.5,.62,.3).translate(0,.31,0),AGMAX),head:agM(new THREE.SphereGeometry(.15,8,6),AGMAX),helm:agM(new THREE.SphereGeometry(.18,8,6,0,6.283,0,1.7),AGMAX),arms:agM(new THREE.BoxGeometry(.13,.55,.13).translate(0,-.27,0),AGMAX*2),gear:agM(new THREE.BoxGeometry(.12,.05,1.5),AGMAX*2)},
 agCol=new THREE.Color(),_rm=new THREE.Matrix4(),_lm=new THREE.Matrix4(),_qa=new THREE.Quaternion(),_qb=new THREE.Quaternion(),_ea=new THREE.Euler(),_va=new THREE.Vector3(),_vb=new THREE.Vector3(),_Y=new THREE.Vector3(0,1,0),
-agJK=[0xe23b3b,0x2f7de1,0xf2b705,0x2dbd6e,0xb04ee0,0xff7a1a,0x20c8d0,0xf2f2f2,0x1c2340],agPN=[0x22262e,0x3a4a6b,0x5b4a3a,0x2f3d2f,0x111111,0x6b2f2f],agHE=[0xe23b3b,0x111111,0xffffff,0x2f7de1,0xf2b705,0x2dbd6e,0xb04ee0,0xff7a1a],agSK=[0xf1c8a5,0xe0ac82,0xc68642,0x8d5524,0x5c3a21],agGC=[0xe23b3b,0x2f7de1,0x111111,0xf2b705,0xffffff,0x2dbd6e],agR=a=>a[(Math.random()*a.length)|0];
+agJK=[0xe11d2e,0x1d6fe8,0xffc400,0x16c05a,0xa23bea,0xff6a00,0x00b8d4,0xff2d8a,0x76d11b],agPN=[0x1b2a6b,0x111111,0xe11d2e,0x1d6fe8,0x16a34a,0xffc400,0x6b21a8,0x0e7490,0xff6a00],agHE=[0xffffff,0x111111,0xe11d2e,0xffc400,0x1d6fe8,0x16c05a,0xff6a00,0xff2d8a],agSK=[0xf1c8a5,0xe0ac82,0xc68642,0x8d5524,0x5c3a21],agGC=[0xe11d2e,0x1d6fe8,0x111111,0xffc400,0xffffff,0x16c05a,0xff6a00],agR=a=>a[(Math.random()*a.length)|0];
 let worn=0,lastWear=-1e9,skAcc=0,skD=false,wD=false,wT=0;
 let pot=0,potT=-9999;
 const hourNow=()=>(6+dayT/DAY*24)%24,eur=n=>Math.round(n).toLocaleString('de-DE');
@@ -163,10 +163,11 @@ function liftTop(l){const t=performance.now();if(l._tt&&t-l._tt<3000)return l.to
  return l.top}
 function resStatus(){if(!lifts.length)return{ok:false,msg:'Es gibt noch keinen Lift / keine Gondel.'};if(!lifts.some(l=>liftTop(l)))return{ok:false,msg:'An keiner Bergstation beginnt eine Piste (Piste bis ca. 40 m an die Bergstation malen).'};return{ok:true,msg:'Bereit'}}
 function curPot(){const r=calcDay(),cap=lifts.reduce((a,l)=>a+(l.cap||60),0),pf=Math.max(.2,Math.min(1.4,1.6-skiPrice/40));return Math.min(r.gp*.8,cap*1.5)*pf}
-function nextCell(a){const ix=Math.round((a.x+S/2)/C),iz=Math.round((a.z+S/2)/C);let best=null,bh=hAt(a.x,a.z)-.05;
- for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i])continue;const x=jx*C-S/2,z=jz*C-S/2,h=hAt(x,z);if(h<bh){bh=h;best={x,z}}}
- return best}
-function mkAg(l,x,z){const kid=Math.random()<.18;return{x,z,y:0,st:'walk',li:l,pass:false,us:new Map(),t:0,vis:true,tg:null,yw:0,ph:Math.random()*6.28,sd:0,jc:agR(agJK),pc:agR(agPN),hc:agR(agHE),sk:agR(agSK),gc:agR(agGC),sc:kid?.72+Math.random()*.1:.92+Math.random()*.2,bd:Math.random()<.4,bs:Math.random()<.5?1.15:-1.15}}
+function nextCell(a){const ix=Math.round((a.x+S/2)/C),iz=Math.round((a.z+S/2)/C),cur=hAt(a.x,a.z),rc=a.rc||(a.rc=[]);let best=null,bh=cur+.2;
+ for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i]||rc.includes(i))continue;const x=jx*C-S/2,z=jz*C-S/2,h=hAt(x,z);if(h<bh){bh=h;best={x,z,i}}}
+ if(best){rc.push(best.i);if(rc.length>14)rc.shift()}return best}
+function mkAg(l,x,z){const kid=Math.random()<.18,jc=agR(agJK);let pc=agR(agPN);while(pc===jc)pc=agR(agPN);
+ return{x,z,y:0,st:'walk',li:l,pass:false,us:new Map(),t:0,vis:true,tg:null,yw:0,ph:Math.random()*6.28,sd:0,car:null,rc:[],jc,pc,hc:agR(agHE),sk:agR(agSK),gc:agR(agGC),sc:kid?.95+Math.random()*.1:1.25+Math.random()*.2,bd:Math.random()<.4,bs:Math.random()<.5?1.15:-1.15}}
 function agPut(M,idx,x,y,z,ry,sc,lx,ly,lz,rx,rz,col,sx,sy,sz){_qa.setFromAxisAngle(_Y,ry);_rm.compose(_va.set(x,y,z),_qa,_vb.set(sc,sc,sc));_ea.set(rx,0,rz);_qb.setFromEuler(_ea);_lm.compose(_va.set(lx,ly,lz),_qb,_vb.set(sx===undefined?1:sx,sy||1,sz||1));_rm.multiply(_lm);M.setMatrixAt(idx,_rm);M.setColorAt(idx,agCol.setHex(col))}
 function agDraw(a,n){const st=a.st,sc=a.sc,x=a.x,z=a.z,seat=st==='ride',gy=seat?a.y-.7:hAt(x,z);let lean=0,bend=0,sw=0,rz=0,arm=0,gm=0;
  if(st==='ski'){lean=.5;bend=.2;gm=1;rz=Math.sin(a.ph)*.14;arm=-.8}else if(seat){gm=2;sw=-1.4;arm=-.3}else{sw=Math.sin(a.ph)*.6;arm=Math.sin(a.ph)*.5}
@@ -183,23 +184,35 @@ function drawAgents(){let n=0;for(const a of agents){if(!a.vis)continue;agDraw(a
  for(const k in agP){const m=agP[k];m.count=(k==='legs'||k==='arms'||k==='gear')?n*2:n;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true}}
 function agStamp(T,x,z,yaw){_qa.setFromAxisAngle(_Y,yaw);mt4.compose(_va.set(x,hAt(x,z)+.05,z),_qa,_vb.set(1,1,1));const sl=T.i%T.n;T.m.setMatrixAt(sl,mt4);T.rec[sl]=[x,z];T.i++;T.m.count=Math.min(T.i,T.n);skD=true}
 function wearCell(i){if(WR[i]<1&&WR[i]+.1>=1)worn++;WR[i]+=.1;GR[i]=Math.max(0,GR[i]-.02);wD=true}
+const pcars=[],angDiff=(t,c)=>{let d=t-c;while(d>Math.PI)d-=6.283;while(d<-Math.PI)d+=6.283;return d},pcW=new THREE.CylinderGeometry(.38,.38,.22,10).rotateZ(Math.PI/2),pcWM=new THREE.MeshLambertMaterial({color:0x17181a}),PCC=[0xc82a2a,0x2a6fc8,0xe8c020,0x2aa84a,0xdddddd,0x333333,0xf08a1f,0x7a3fa8,0x1fb5b0];
+function slotPos(p,k){return k<8?{x:p.x-7+2*k,z:p.z-2.5}:{x:p.x-6+3*(k-8),z:p.z+4.2}}
+function newCar(col){const m=new THREE.Group(),a=new THREE.Mesh(carG[0],new THREE.MeshLambertMaterial({color:col})),b=new THREE.Mesh(carG[1],new THREE.MeshLambertMaterial({color:0x2a3646}));a.position.y=.7;b.position.set(0,1.35,.2);a.castShadow=true;m.add(a,b);for(const sx of[-1,1])for(const z of[-1.3,1.3]){const w=new THREE.Mesh(pcW,pcWM);w.position.set(sx*.95,.38,z);m.add(w)}scene.add(m);return m}
+function spawnCar(p,k,l,n){const right=p.x>0,lz=right?Z2-2.3:Z2+2.3,s=slotPos(p,k);pcars.push({m:newCar(agR(PCC)),x:right?585:-585,z:lz,st:'drive',n,p,k,l,s,wp:[{x:p.x,z:lz},{x:s.x,z:s.z}],i:0,sp:false,chk:0})}
+function updCars(dt,now){for(let k=pcars.length-1;k>=0;k--){const c=pcars[k];
+ if(c.st==='park'){if(c.sp&&now-c.chk>1000){c.chk=now;if(!agents.some(a=>a.car===c)){c.st='leave';c.p.sl[c.k]=0;const lz=c.p.x>0?Z2-2.3:Z2+2.3;c.wp=[{x:c.p.x,z:lz},{x:c.p.x>0?590:-590,z:lz}];c.i=0}}continue}
+ const w=c.wp[c.i],dx=w.x-c.x,dz=w.z-c.z,d=Math.hypot(dx,dz),sp=((c.st==='drive'&&c.i===c.wp.length-1)||(c.st==='leave'&&c.i===0)?6:11)*dt;
+ if(d<=sp){c.x=w.x;c.z=w.z;c.i++;if(c.i>=c.wp.length){if(c.st==='drive'){c.st='park';c.m.rotation.y=0;c.sp=true;c.chk=now;for(let i=0;i<c.n;i++){const a=mkAg(c.l,c.x+1.6+i*.4,c.z+(i-1)*.5);a.car=c;agents.push(a)}}else{scene.remove(c.m);pcars.splice(k,1);continue}}}
+ else{c.x+=dx/d*sp;c.z+=dz/d*sp;c.m.rotation.y+=angDiff(Math.atan2(-dx,-dz),c.m.rotation.y)*Math.min(1,dt*6)}
+ const inLot=Math.abs(c.x-c.p.x)<11&&Math.abs(c.z-c.p.z)<8;c.m.position.set(c.x,hAt(c.x,c.z)+(inLot?.3:.1),c.z)}}
 function updAgents(dt){
  const now=performance.now(),h=hourNow();
  if(now-potT>3000){potT=now;pot=curPot()}
- if(resOpen&&h>=8&&h<16.5&&lifts.length&&parks.length){const CAP=Math.min(AGMAX,parks.length*60);if(agents.length<CAP)spawnAcc+=dt*pot/319;const ok=lifts.filter(l=>liftTop(l)&&!l.stop);
-  while(spawnAcc>=1&&agents.length<CAP){spawnAcc-=1;if(!ok.length)break;const l=ok[(Math.random()*ok.length)|0],an=Math.random()*6.28,r=20+Math.random()*15;
-   agents.push(mkAg(l,l.A.x+Math.cos(an)*r,l.A.z+Math.sin(an)*r))}}
+ updCars(dt,now);
+ if(resOpen&&h>=8&&h<16.5&&lifts.length&&parks.length){const CAP=Math.min(AGMAX,parks.length*60);let pend=0;for(const c of pcars)if(c.st==='drive')pend+=c.n;if(agents.length+pend<CAP)spawnAcc+=dt*pot/319;const ok=lifts.filter(l=>liftTop(l)&&!l.stop);
+  while(spawnAcc>=1&&agents.length+pend<CAP){if(!ok.length)break;const fr=[];parks.forEach(p=>{p.sl=p.sl||new Array(13).fill(0);p.sl.forEach((u,k)=>{if(!u)fr.push([p,k])})});if(!fr.length){spawnAcc=1;break}
+   const [p,k]=agR(fr),n=Math.min(1+(Math.random()*3|0),Math.floor(spawnAcc),AGMAX-agents.length-pend);if(n<1)break;spawnAcc-=n;pend+=n;p.sl[k]=1;let l=ok[0],bd=1e9;ok.forEach(q=>{const d=Math.hypot(q.A.x-p.x,q.A.z-p.z);if(d<bd){bd=d;l=q}});if(Math.random()<.3)l=agR(ok);spawnCar(p,k,l,n)}}
  else spawnAcc=Math.min(spawnAcc,1);
  for(let k=agents.length-1;k>=0;k--){const a=agents[k],l=a.li;
   if(!lifts.includes(l)||(!resOpen&&a.st!=='ride'&&a.st!=='board')){agents.splice(k,1);continue}
-  a.ph+=dt*(a.st==='walk'||a.st==='exit'?7:a.st==='ski'?3:1);
+  a.ph+=dt*(a.st==='walk'||a.st==='exit'||a.st==='return'?7:a.st==='ski'?3:1);
   if(a.st==='walk'){const dx=l.A.x-a.x,dz=l.A.z-a.z,d=Math.hypot(dx,dz),sp=3*dt;a.yw=Math.atan2(dx,dz);if(d<3){if(!a.pass||(a.us.get(l)||0)>=3){a.pass=true;a.us=new Map();ticketsToday++;revToday+=skiPrice;money+=skiPrice}a.st='wait'}else{a.x+=dx/d*sp;a.z+=dz/d*sp}}
   else if(a.st==='wait'){a.yw=Math.atan2(l.B.x-l.A.x,l.B.z-l.A.z);if(now>=(l.nxt||0)){l.nxt=now+37500/(l.cap||60);a.st='board';a.t=0}}
   else if(a.st==='board'){a.t+=dt;const q=Math.min(1,dt*4);a.x+=(l.A.x-a.x)*q;a.z+=(l.A.z-a.z)*q;a.yw=Math.atan2(l.B.x-l.A.x,l.B.z-l.A.z);a.ph+=dt*5;if(a.t>.9){a.us.set(l,(a.us.get(l)||0)+1);a.st='ride';a.t=0;a.vis=!l.gon;a.y=l.A.y-1.6}}
   else if(a.st==='ride'){const dur=l.L/(l.gon?6:3.5);a.t+=dt;const f=Math.min(1,a.t/dur);a.x=l.A.x+(l.B.x-l.A.x)*f;a.z=l.A.z+(l.B.z-l.A.z)*f;a.y=l.A.y+(l.B.y-l.A.y)*f-1.6;a.vis=!l.gon;a.yw=Math.atan2(l.B.x-l.A.x,l.B.z-l.A.z);
    if(f>=1){const t=liftTop(l);if(t){a.x=l.B.x;a.z=l.B.z;a.st='exit';a.tgt=t;a.vis=true;a.t=0}else{agents.splice(k,1);continue}}}
-  else if(a.st==='exit'){const dx=a.tgt.x-a.x,dz=a.tgt.z-a.z,d=Math.hypot(dx,dz),sp=4*dt;a.yw=Math.atan2(dx,dz);if(d<=sp+.5){a.st='ski';a.tg=null;a.sd=0}else{a.x+=dx/d*sp;a.z+=dz/d*sp}}
-  else if(a.st==='ski'){if(!a.tg){a.tg=nextCell(a);if(!a.tg){let bl=null,bd=1e9;lifts.forEach(q=>{const d=Math.hypot(q.A.x-a.x,q.A.z-a.z);if(d<bd){bd=d;bl=q}});if(bl&&bd<60&&Math.random()<.65){a.li=bl;a.st='walk'}else agents.splice(k,1);continue}}
+  else if(a.st==='exit'){const dx=a.tgt.x-a.x,dz=a.tgt.z-a.z,d=Math.hypot(dx,dz),sp=4*dt;a.yw=Math.atan2(dx,dz);if(d<=sp+.5){a.st='ski';a.tg=null;a.sd=0;a.rc=[]}else{a.x+=dx/d*sp;a.z+=dz/d*sp}}
+  else if(a.st==='return'){const c=a.car;if(!c||c.st!=='park'){agents.splice(k,1);continue}const dx=c.x-a.x,dz=c.z-a.z,d=Math.hypot(dx,dz),sp=3*dt;a.yw=Math.atan2(dx,dz);if(d<2){agents.splice(k,1);continue}a.x+=dx/d*sp;a.z+=dz/d*sp}
+  else if(a.st==='ski'){if(!a.tg){a.tg=nextCell(a);if(!a.tg){let bl=null,bd=1e9;lifts.forEach(q=>{const d=Math.hypot(q.A.x-a.x,q.A.z-a.z);if(d<bd){bd=d;bl=q}});if(bl&&bd<60&&Math.random()<.65){a.li=bl;a.st='walk'}else if(a.car&&a.car.st==='park'){a.st='return'}else agents.splice(k,1);continue}}
    const dx=a.tg.x-a.x,dz=a.tg.z-a.z,d=Math.hypot(dx,dz),sp=9*dt;a.yw=Math.atan2(dx,dz);
    if(d<=sp){a.x=a.tg.x;a.z=a.tg.z;wearCell(Math.round((a.x+S/2)/C)+Math.round((a.z+S/2)/C)*V);a.tg=null}else{a.x+=dx/d*sp;a.z+=dz/d*sp;a.sd+=sp;if(a.sd>2.8){a.sd=0;agStamp(a.bd?bdT:skT,a.x,a.z,a.yw)}}}}
  skAcc+=dt;if(skD&&skAcc>.15){skAcc=0;skD=false;skT.m.instanceMatrix.needsUpdate=true;bdT.m.instanceMatrix.needsUpdate=true}
