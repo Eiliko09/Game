@@ -95,14 +95,27 @@ const terrain=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:tr
 function syncPos(){for(let i=0;i<V*V;i++)QH[i]=H[i]+SP[i];for(let i=0;i<V*V;i++){pos[3*i]=(i%V)*C-S/2;pos[3*i+1]=QH[i];pos[3*i+2]=((i/V)|0)*C-S/2}
  for(let i=0;i<V*V;i++){const ix=i%V,iz=(i/V)|0,a=ix>0?QH[i-1]:QH[i],b=ix<N?QH[i+1]:QH[i],c=iz>0?QH[i-V]:QH[i],d=iz<N?QH[i+V]:QH[i],nx=a-b,nz=c-d,l=Math.hypot(nx,2*C,nz);nor[3*i]=nx/l;nor[3*i+1]=2*C/l;nor[3*i+2]=nz/l}
  geo.attributes.position.needsUpdate=geo.attributes.normal.needsUpdate=true}
-function paint(){for(let i=0;i<V*V;i++){const ix=i%V,iz=(i/V)|0,h=H[i];
+// ---------- Pistenzaun ----------
+const fenceMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false});
+const fenceMesh=new THREE.Mesh(new THREE.BufferGeometry(),fenceMat);fenceMesh.frustumCulled=false;scene.add(fenceMesh);
+const MAXP=9000,postMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(.14,1.5,.14).translate(0,.75,0),new THREE.MeshLambertMaterial({color:0x4a3b2a}),MAXP);postMesh.frustumCulled=false;postMesh.count=0;scene.add(postMesh);
+let fsig=0,fsigLast=-1;
+function buildFence(){const pos=[],colr=[],idx=[],posts=new Map(),M4=new THREE.Matrix4();
+ for(let iz=0;iz<V;iz++)for(let ix=0;ix<V;ix++){const i=iz*V+ix;if(!PI[i])continue;const cx=ix*C-S/2,cz=iz*C-S/2,c=PC[i]?[.9,.12,.1]:[1,.5,.08];
+  for(let d=0;d<4;d++){const dx=d===0?1:d===1?-1:0,dz=d===2?1:d===3?-1:0,jx=ix+dx,jz=iz+dz;if(jx>=0&&jz>=0&&jx<V&&jz<V&&PI[jz*V+jx])continue;
+   const mx=cx+dx*C/2,mz=cz+dz*C/2,px=-dz*C/2,pz=dx*C/2,ax=mx-px,az=mz-pz,bx=mx+px,bz=mz+pz,ya=hAt(ax,az),yb=hAt(bx,bz),n=pos.length/3;
+   pos.push(ax,ya+.15,az,bx,yb+.15,bz,bx,yb+1.15,bz,ax,ya+1.15,az);for(let q=0;q<4;q++)colr.push(c[0],c[1],c[2]);idx.push(n,n+1,n+2,n,n+2,n+3);
+   posts.set(Math.round(ax*8)+','+Math.round(az*8),[ax,az,ya]);posts.set(Math.round(bx*8)+','+Math.round(bz*8),[bx,bz,yb])}}
+ fenceMesh.geometry.dispose();const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colr,3));g.setIndex(idx);fenceMesh.geometry=g;
+ let m=0;posts.forEach(q=>{if(m>=MAXP)return;M4.makeTranslation(q[0],q[2],q[1]);postMesh.setMatrixAt(m++,M4)});postMesh.count=m;postMesh.instanceMatrix.needsUpdate=true}
+function paint(){fsig=0;for(let i=0;i<V*V;i++){const ix=i%V,iz=(i/V)|0,h=H[i];
  const s=Math.hypot(H[ix<N?i+1:i-1]-h,H[iz<N?i+V:i-V]-h)/C;
  const rock=s>.75||h>170;let br=rock?.46:.3,bg=rock?.44:.45,bb=rock?.43:.22;
  let sr=.8,sg=.85,sb=.9;if(PI[i]){sr=.7;sg=.8;sb=.93}if(PC[i]){sr=.95;sg=.5;sb=.45}
  const q=GR[i];if(q>0){sr+=(.92-sr)*q;sg+=(.94-sg)*q;sb+=(.97-sb)*q}
  const sn=Math.min(1,(.55+SN[i]*.75)*(s>.85?.7:1));
- const pl=cl(SP[i]*2,0,1);col[3*i]=(br+(sr-br)*sn)*(1-pl)+.95*pl;col[3*i+1]=(bg+(sg-bg)*sn)*(1-pl)+.97*pl;col[3*i+2]=(bb+(sb-bb)*sn)*(1-pl)+pl}
- geo.attributes.color.needsUpdate=true}
+ const pl=cl(SP[i]*2,0,1);col[3*i]=(br+(sr-br)*sn)*(1-pl)+.95*pl;col[3*i+1]=(bg+(sg-bg)*sn)*(1-pl)+.97*pl;col[3*i+2]=(bb+(sb-bb)*sn)*(1-pl)+pl;if(PI[i]){if(mode==='build'){const cr=PC[i]?1:.3,cg=PC[i]?.3:.65,cb=PC[i]?.28:1,m=PC[i]?.5:.4;col[3*i]+=(cr-col[3*i])*m;col[3*i+1]+=(cg-col[3*i+1])*m;col[3*i+2]+=(cb-col[3*i+2])*m}fsig+=(i%9973)+1+(PC[i]?50000:0)+Math.round(H[i]*4)}}
+ geo.attributes.color.needsUpdate=true;if(fsig!==fsigLast){fsigLast=fsig;buildFence()}}
 syncPos();paint();
 // ---------- Kollision ----------
 const OB=new Map(),ck=(i,j)=>i*4096+j,cc=v=>Math.floor((v+S/2)/16);
@@ -276,7 +289,7 @@ let loading=false,onFoot=false;const P={x:0,z:0,y:0,yaw:0},pm=new THREE.Group();
  const ht=new THREE.Mesh(new THREE.SphereGeometry(.25,10,8,0,Math.PI*2,0,Math.PI/2),new THREE.MeshStandardMaterial({color:0x2255aa}));ht.position.y=1.98;pm.add(ht)}
 pm.visible=false;scene.add(pm);
 // ---------- Zustand ----------
-let money=250000,day=1,dayT=0,rep='–',mode='drive',camMode='out',tool='cam',lifts=[],rests=[],guns=[],pumps=[],trafos=[],roads=[],alms=[],tanks=[];
+let money=250000,day=1,dayT=112.5,rep='–',mode='drive',camMode='out',tool='cam',lifts=[],rests=[],guns=[],pumps=[],trafos=[],roads=[],alms=[],tanks=[];
 const DAY=900;
 const toastEl=$('toast');let tt;function toast(s){toastEl.textContent=s;toastEl.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>toastEl.style.opacity=0,1600)}
 function spend(n){if(loading)return true;if(money<n){toast('Zu wenig Geld');return false}money-=n;return true}
@@ -472,10 +485,10 @@ function newDay(){const r=calcDay(),{gp,guests,inc,exp}=r;money+=inc-exp;rep=gp?
 
 // ---------- Hauptschleife ----------
 const fv=new THREE.Vector3(),tmp=new THREE.Vector3();let last=performance.now(),hudT=0,tm=0;
-let __bad=0,__last='';
+let __bad=0,__last='',lastMode='';
 function loop(now){requestAnimationFrame(loop);try{loop2(now);__bad=0}catch(e){__bad++;const m=(e&&e.message||String(e));if(m!==__last){__last=m;console.error(e);window.__diagBox&&window.__diagBox('Spielschleife: '+m+' | '+String(e&&e.stack||'').split('\n')[1])}
  if(__bad===60){try{const b=localStorage.getItem(KEY);if(b)localStorage.setItem(KEY+'_defekt',b);localStorage.removeItem(KEY)}catch(_){}if(!sessionStorage.getItem('sk_reload2')){sessionStorage.setItem('sk_reload2','1');location.reload()}}}}
-function loop2(now){const dt=Math.min(.05,(now-last)/1000);last=now;tm+=dt;
+function loop2(now){if(mode!==lastMode){lastMode=mode;dirtyC=true}const dt=Math.min(.05,(now-last)/1000);last=now;tm+=dt;
  let ix=jx,iy=jy;if(!jp){ix=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);iy=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0)}
  if(mode==='build'){ix=iy=0}
  let wx=0,wy=0;if(onFoot){wx=ix;wy=iy;ix=iy=0}
@@ -511,10 +524,10 @@ const fx=-f,fz=-h2,rx=h2,rz=-f;
  updTown(dt);dayT+=dt;if(dayT>=DAY){dayT-=DAY;newDay()}updSound(dt);
  if(dirtyG&&now-lastG>80){syncPos();dirtyG=false;dirtyC=true;lastG=now}
  if(dirtyC&&now-lastC>160){paint();dirtyC=false;lastC=now}
- {const fp=mode==='build'?bf:onFoot?P:G;sun.target.position.set(fp.x,0,fp.z);sun.position.set(fp.x+90,130,fp.z+60);sun.target.updateMatrixWorld()}
+ {const fp=mode==='build'?bf:onFoot?P:G;sun.target.position.set(fp.x,0,fp.z);const ha=cl(((6+dayT/DAY*24)%24-6)/12,0,1)*Math.PI;sun.position.set(fp.x+Math.cos(ha)*130,35+Math.sin(ha)*100,fp.z+60);sun.target.updateMatrixWorld()}
  for(let i=0;i<sfN;i++){let y=sfP[3*i+1]-dt*(2+i%3*.5);if(y<-40)y+=80;sfP[3*i+1]=y;sfP[3*i]+=Math.sin(tm+i)*dt*.4}sf.geometry.attributes.position.needsUpdate=true;sf.position.copy(cam.position);skyM.position.copy(cam.position);stars.position.copy(cam.position);stars.material.opacity=nf;
- night=dayT/DAY>.58;nf+=((night?1:0)-nf)*Math.min(1,dt*1.5);
- {const k=nf;sun.intensity=1.75*(1-.93*k);hemi.intensity=.6-.45*k;sun.color.setRGB(1,.94-.2*k,.85+.1*k);skyM.material.color.setRGB(1-.9*k,1-.88*k,1-.78*k);scene.fog.color.setRGB(.79-.74*k,.86-.8*k,.94-.84*k);R.toneMappingExposure=.85+.2*k;hl.intensity=k*6;
+ {const hh=(6+dayT/DAY*24)%24,ss=(a,b,x)=>{const t=cl((x-a)/(b-a),0,1);return t*t*(3-2*t)};nf=hh>=12?ss(17,21,hh):1-ss(5,8,hh);night=nf>.5}
+ {const k=nf;sun.intensity=1.75*(1-.93*k);hemi.intensity=.6-.45*k;const dd=4*k*(1-k);sun.color.setRGB(1,.94-.2*k-.2*dd,.85+.1*k-.3*dd);skyM.material.color.setRGB(1-.9*k,(1-.88*k)*(1-.2*dd),(1-.78*k)*(1-.42*dd));scene.fog.color.setRGB(.79-.74*k+.2*dd,.86-.8*k,.94-.84*k-.1*dd);fenceMat.color.setScalar(1-.8*k);R.toneMappingExposure=.85+.2*k;hl.intensity=k*6;
   const fq=mode==='build'?bf:onFoot?P:G,near=lamps.map(l=>[(l.x-fq.x)**2+(l.z-fq.z)**2,l]).sort((a,b)=>a[0]-b[0]);
   plights.forEach((pl,i)=>{const e=near[i];if(e){pl.position.set(e[1].x,e[1].y,e[1].z);pl.intensity=k*3}else pl.intensity=0});lamps.forEach(l=>l.pool.material.opacity=k*.9)}
  // Kamera
@@ -565,4 +578,4 @@ if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}
 let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v6</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v8</div></body></html>
