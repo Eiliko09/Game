@@ -686,7 +686,7 @@ function toggleSw(l){if(!l.stop){toast('Erst Notstopp drücken, dann die Weiche 
 function updLift(dt){let near=null;
  lifts.forEach(l=>{if(l.wheels&&!l.stop)l.wheels.forEach(w=>{w.rotation.y+=dt*2});l.cabs.forEach(c=>{
    if(!c.mode)c.mode='loop';
-   if(c.mode==='loop'){if(!l.stop)c.t=(c.t+dt*(l.gon===2?5:6)/(l.tot||l.L))%1;c.m.position.copy(liftPos(l,c.t));if(l.gon===2){const q=liftPos(l,c.t+.003),pm=c.m.position;c.m.rotation.y=Math.atan2(q.x-pm.x,q.z-pm.z);const oc=c.m.userData.occ;if(oc)oc.visible=!!(resOpen&&agents.length&&c.t>=l.u0&&c.t<=l.u1)}return}
+   if(c.mode==='loop'){if(!l.stop)c.t=(c.t+dt*(l.gon===2?5:6)/(l.tot||l.L))%1;c.m.position.copy(liftPos(l,c.t));if(l.gon===2){const q=liftPos(l,c.t+.003),pm=c.m.position;c.m.rotation.y=Math.atan2(q.x-pm.x,q.z-pm.z)-Math.PI/2;const oc=c.m.userData.occ;if(oc)oc.visible=!!(resOpen&&agents.length&&c.t>=l.u0&&c.t<=l.u1)}return}
    if(c.mode==='go'||c.mode==='back'){c.p=Math.min(1,c.p+dt*2.5/c.path.len);c.m.position.copy(liftPos({pts:c.path.pts,cum:c.path.cum,tot:c.path.len},Math.min(c.p,.9999)));
      if(c.p>=1){if(c.mode==='go')c.mode='parked';else{c.mode='loop';c.t=c.rejoin}}}
  });
@@ -1008,4 +1008,4 @@ let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 try{const c=JSON.parse(sessionStorage.getItem('sk_cam')||'null');if(c){sessionStorage.removeItem('sk_cam');bf.x=c[0];bf.z=c[1];bd=c[2];$('bBuild').onclick();const ct=CATS.find(x=>x[2].includes(c[3]));if(ct)showCat(ct[0]);const tb=document.querySelector('#row [data-t="'+c[3]+'"]');if(tb)tb.click()}}catch(_){}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.11</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.12</div></body></html>
