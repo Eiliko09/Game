@@ -28,19 +28,20 @@ button.on,button.sel{background:var(--ac)}
 #gp{width:100%;display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;align-items:center}#tach{flex:1 1 100%;height:9px;border-radius:5px;background:rgba(255,255,255,.28);overflow:hidden}#tachF{height:100%;width:10%;background:#6ddf6d}
 #vm{display:none;position:fixed;inset:0;z-index:8;background:rgba(10,20,35,.85);color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:12px}#vm button{width:min(380px,90vw);padding:10px;font-size:14px;text-align:left}
 #intro{overflow-y:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;-webkit-text-size-adjust:100%;text-size-adjust:100%}#intro .x{position:fixed;z-index:20}#intro>*{flex:none}#go{margin:6px 0 24px}@media (orientation:landscape){#intro{font-size:13px;line-height:1.35;padding:10px 70px;gap:6px}#intro h1{font-size:20px}}
+#pcui{display:none;position:fixed;inset:0;z-index:30;background:rgba(5,10,20,.82);align-items:center;justify-content:center;padding:10px}#pcw{width:min(94vw,560px);max-height:92vh;overflow:auto;background:#17324f;color:#fff;border-radius:14px;border:2px solid #3a6ea5;font-size:14px;line-height:1.5}#pct{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#0e2238;padding:8px 12px;font-weight:700;position:sticky;top:0}#pcb{padding:12px}.pcg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pci{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;font-size:13px}.pci span{font-size:28px}.pci small{opacity:.8;font-size:11px}#pcb table{width:100%;border-collapse:collapse}#pcb td{padding:3px 0}#pcb td:last-child{text-align:right}#pcb h3{margin:8px 0}
 </style></head><body>
 <canvas id="c"></canvas>
 <div class="hud"><span class="chip" id="hMoney"></span><span class="chip" id="hDay"></span><span class="chip" id="hSnow"></span><span class="chip" id="hRep"></span><span class="chip" id="hFuel"></span><span class="chip" id="hSpd"></span></div>
 <div id="top"><button id="bFs">⛶</button><button id="bSnd">🔊</button><button id="bSave">💾</button><button id="bBuild">🏗 Bauen</button></div>
 <div id="pc" style="display:none;position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);gap:4px;background:var(--bg);padding:4px;border-radius:12px"><button data-t="close">⛔ Sperren</button><button data-t="open">✅ Öffnen</button><button id="bPDone" style="display:none">✔ Fertig</button><button id="bPDel" style="display:none">🗑 Löschen</button><button id="bPFence" style="display:none">🚧 Zaun</button></div><div id="joy"><div id="knob"></div></div>
-<div id="drive"><div id="gp"><div id="tach"><div id="tachF"></div></div><span class="chip" id="gTxt">Gang 1</span><button id="bGd">−</button><button id="bGu">+</button><button id="bAuto" class="on">⚙ Auto</button></div><button id="bBuro" style="display:none">🚪 Büro betreten</button><button id="bFuel" style="display:none">⛽ Tanken</button><button id="bUse" style="display:none">🔧 Bedienen</button><button id="bFoot">🚶 Aussteigen</button><button id="bCam">📷 Außen</button><button id="bTill">❄ Fräse aus</button><button id="bBlade">⛏ Schild: oben</button><button id="bVeh">🚜 Fahrzeug</button></div><div id="vm"></div>
+<div id="drive"><div id="gp"><div id="tach"><div id="tachF"></div></div><span class="chip" id="gTxt">Gang 1</span><button id="bGd">−</button><button id="bGu">+</button><button id="bAuto" class="on">⚙ Auto</button></div><button id="bBuro" style="display:none">🖥 Computer benutzen</button><button id="bFuel" style="display:none">⛽ Tanken</button><button id="bUse" style="display:none">🔧 Bedienen</button><button id="bFoot">🚶 Aussteigen</button><button id="bCam">📷 Außen</button><button id="bTill">❄ Fräse aus</button><button id="bBlade">⛏ Schild: oben</button><button id="bVeh">🚜 Fahrzeug</button></div><div id="vm"></div>
 <div id="tools"><div id="info"></div><div id="row">
 <button data-t="cam">✋ Bewegen / Kanone an-aus</button>
 <button data-t="up">⛰ Anheben</button><button data-t="down">🕳 Absenken</button>
 <button data-t="pdraw">✏ Piste zeichnen</button><button data-t="prect">▭ Pistenstreifen</button><button data-t="zaun">🚧 Zaun (Holz)</button><button data-t="piste">🎿 Piste markieren</button><button data-t="lift">🚡 Lift ab 7.000</button>
 <button data-t="rest">🍽 Restaurant 20.000</button><button data-t="gun">🌨 Kanone 3.000</button><button data-t="lamp">💡 Flutlicht 1.500</button>
 <button data-t="pump">💧 Pumpe 8.000</button><button data-t="trafo">⚡ Trafo 6.000</button><button data-t="road">🛣 Straße 60/m</button><button data-t="alm">🏠 Alm 35.000</button><button data-t="tank">⛽ Tankstelle 2.500</button><button data-t="gond">🚠 Seilbahn 15.000+</button><button data-t="deko" data-d="tree">🌲 Tanne</button><button data-t="deko" data-d="flag">🚩 Fahne</button><button data-t="deko" data-d="bench">🪑 Bank</button><button data-t="deko" data-d="man">⛄ Schneemann</button><button data-t="deko" data-d="lamp">🏮 Laterne</button><button data-t="tmove">🔧 Tankstelle versetzen</button><button data-t="jump">🛷 Schanze 2.000</button><button id="bBr">⭕ Pinsel ×1</button></div></div>
-<div id="pw" style="display:none;position:fixed;left:8px;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:6;align-items:center;gap:8px;background:var(--bg);color:#fff;padding:6px 10px;border-radius:12px;font-size:12px"><span id="pwT">Breite: 14 m</span><input id="pwR" type="range" min="4" max="40" step="1" value="14" style="width:120px"></div><div id="toast"></div><div id="office" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);background:var(--bg);color:#fff;padding:8px 12px;border-radius:12px;font-size:12px;line-height:1.5;width:230px"></div><div id="sum" style="display:none;position:fixed;inset:0;z-index:8;background:rgba(10,20,35,.8);color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;font-size:15px;line-height:1.6"></div>
+<div id="pcui"><div id="pcw"><div id="pct"><span id="pcT">🖥 Büro-Computer</span><button data-act="close">✕</button></div><div id="pcb"></div></div></div><div id="pw" style="display:none;position:fixed;left:8px;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:6;align-items:center;gap:8px;background:var(--bg);color:#fff;padding:6px 10px;border-radius:12px;font-size:12px"><span id="pwT">Breite: 14 m</span><input id="pwR" type="range" min="4" max="40" step="1" value="14" style="width:120px"></div><div id="toast"></div><div id="office" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);background:var(--bg);color:#fff;padding:8px 12px;border-radius:12px;font-size:12px;line-height:1.5;width:230px"></div><div id="sum" style="display:none;position:fixed;inset:0;z-index:8;background:rgba(10,20,35,.8);color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;font-size:15px;line-height:1.6"></div>
 <div id="rot"><button class="x" onclick="this.parentNode.classList.add('off')">✕</button><div style="font-size:48px">🔄</div>Bitte drehe dein iPhone ins Querformat</div>
 <div id="intro"><button class="x" onclick="document.getElementById('intro').remove()">✕</button><h1>⛷ Skigebiet Tycoon</h1>
 <div>Du startest mit 250.000 €. Unten im Dorf stehen die Hotels, darüber beginnt dein tief verschneites Skigebiet (Querformat empfohlen).<br><br>
@@ -146,6 +147,59 @@ function selectPiste(p){
  selCells=set;dirtyC=true;
  if(tool==='zaun'){const need=Math.ceil(fenceEdges(set)/2),d=$('bPFence');d.textContent='🚧 Zaun bauen ('+need+' Holz, du hast '+wood+')';d.style.display='';$('bPDel').style.display='none'}
  else{const d=$('bPDel');d.textContent='🗑 Piste löschen (+'+(set.size*2).toLocaleString('de-DE')+' €)';d.style.display='';$('bPFence').style.display='none'}}
+// ---------- Gäste ----------
+const AGMAX=90,agMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(.5,1.6,.5),new THREE.MeshLambertMaterial({color:0xffffff}),AGMAX),agDummy=new THREE.Object3D(),agColor=new THREE.Color(),agCols=[0xe23b3b,0x2f7de1,0xf2b705,0x2dbd6e,0xb04ee0,0xff7a1a,0x20c8d0];
+agMesh.frustumCulled=false;agMesh.count=0;scene.add(agMesh);
+let pot=0,potT=-9999;
+const hourNow=()=>(6+dayT/DAY*24)%24,eur=n=>Math.round(n).toLocaleString('de-DE');
+function liftTop(l){const t=performance.now();if(l._tt&&t-l._tt<3000)return l.top;l._tt=t;l.top=null;let bd=1e9;const ix=Math.round((l.B.x+S/2)/C),iz=Math.round((l.B.z+S/2)/C);
+ for(let dz=-10;dz<=10;dz++)for(let dx=-10;dx<=10;dx++){const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i])continue;const x=jx*C-S/2,z=jz*C-S/2,d=Math.hypot(x-l.B.x,z-l.B.z);if(d<bd){bd=d;l.top={x,z}}}
+ return l.top}
+function resStatus(){if(!lifts.length)return{ok:false,msg:'Es gibt noch keinen Lift / keine Gondel.'};if(!lifts.some(l=>liftTop(l)))return{ok:false,msg:'An keiner Bergstation beginnt eine Piste (Piste bis ca. 40 m an die Bergstation malen).'};return{ok:true,msg:'Bereit'}}
+function curPot(){const r=calcDay(),cap=lifts.reduce((a,l)=>a+(l.cap||60),0),pf=Math.max(.2,Math.min(1.4,1.6-skiPrice/40));return Math.min(r.gp*.8,cap*1.5)*pf}
+function nextCell(a){const ix=Math.round((a.x+S/2)/C),iz=Math.round((a.z+S/2)/C);let best=null,bh=hAt(a.x,a.z)-.05;
+ for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i])continue;const x=jx*C-S/2,z=jz*C-S/2,h=hAt(x,z);if(h<bh){bh=h;best={x,z}}}
+ return best}
+function updAgents(dt){
+ const now=performance.now(),h=hourNow();
+ if(now-potT>3000){potT=now;pot=curPot()}
+ if(resOpen&&h>=8&&h<16.5&&lifts.length){if(agents.length<AGMAX)spawnAcc+=dt*pot/319;const ok=lifts.filter(l=>liftTop(l));
+  while(spawnAcc>=1&&agents.length<AGMAX){spawnAcc-=1;if(!ok.length)break;const l=ok[(Math.random()*ok.length)|0],an=Math.random()*6.28,r=20+Math.random()*15;
+   agents.push({x:l.A.x+Math.cos(an)*r,z:l.A.z+Math.sin(an)*r,y:0,st:'walk',li:l,ticket:false,t:0,col:agCols[(Math.random()*agCols.length)|0],vis:true,tg:null})}}
+ else spawnAcc=Math.min(spawnAcc,1);
+ for(let k=agents.length-1;k>=0;k--){const a=agents[k],l=a.li;
+  if(!lifts.includes(l)||(!resOpen&&a.st!=='ride')){agents.splice(k,1);continue}
+  if(a.st==='walk'){const dx=l.A.x-a.x,dz=l.A.z-a.z,d=Math.hypot(dx,dz),sp=3*dt;if(d<3){if(!a.ticket){a.ticket=true;ticketsToday++;revToday+=skiPrice;money+=skiPrice}a.st='wait'}else{a.x+=dx/d*sp;a.z+=dz/d*sp}}
+  else if(a.st==='wait'){if(now>=(l.nxt||0)){l.nxt=now+37500/(l.cap||60);a.st='ride';a.t=0}}
+  else if(a.st==='ride'){const dur=l.L/(l.gon?6:3.5);a.t+=dt;const f=Math.min(1,a.t/dur);a.x=l.A.x+(l.B.x-l.A.x)*f;a.z=l.A.z+(l.B.z-l.A.z)*f;a.y=l.A.y+(l.B.y-l.A.y)*f-1.6;a.vis=!l.gon;
+   if(f>=1){const t=liftTop(l);if(t){a.x=t.x;a.z=t.z;a.st='ski';a.tg=null;a.vis=true}else{agents.splice(k,1);continue}}}
+  else if(a.st==='ski'){if(!a.tg){a.tg=nextCell(a);if(!a.tg){let bl=null,bd=1e9;lifts.forEach(q=>{const d=Math.hypot(q.A.x-a.x,q.A.z-a.z);if(d<bd){bd=d;bl=q}});if(bl&&bd<60&&Math.random()<.65){a.li=bl;a.st='walk'}else agents.splice(k,1);continue}}
+   const dx=a.tg.x-a.x,dz=a.tg.z-a.z,d=Math.hypot(dx,dz),sp=9*dt;if(d<=sp){a.x=a.tg.x;a.z=a.tg.z;a.tg=null}else{a.x+=dx/d*sp;a.z+=dz/d*sp}}}
+ let n=0;for(const a of agents){if(!a.vis)continue;agDummy.position.set(a.x,a.st==='ride'?a.y:hAt(a.x,a.z)+.8,a.z);agDummy.updateMatrix();agMesh.setMatrixAt(n,agDummy.matrix);agMesh.setColorAt(n,agColor.setHex(a.col));n++}
+ agMesh.count=n;agMesh.instanceMatrix.needsUpdate=true;if(agMesh.instanceColor)agMesh.instanceColor.needsUpdate=true}
+// ---------- Büro-Computer (Oberfläche) ----------
+let pcH='';
+function openPC(){$('pcui').style.display='flex';pcApp='desk';renderPC(true)}
+function pcAct(a){if(a==='close'){$('pcui').style.display='none';return}
+ if(a==='toggle'){if(!resOpen){const st=resStatus();if(!st.ok){toast(st.msg);return}resOpen=true;toast('Skigebiet geöffnet – Gäste kommen')}else{resOpen=false;toast('Skigebiet geschlossen')}drawPCscr()}
+ else if(a==='pm')skiPrice=Math.max(5,skiPrice-5);else if(a==='pp')skiPrice=Math.min(100,skiPrice+5);
+ else if(a==='b10'||a==='b50'){const n=a==='b10'?10:50,c=n===10?500:2250;if(spend(c)){wood+=n;toast('+'+n+' Holz bestellt')}}
+ renderPC(true)}
+function renderPC(force){const o=$('pcui');if(o.style.display==='none')return;
+ const r=calcDay(),on=guns.filter(u=>u.on).length,kwG=on*45,kwL=lifts.length*30,kwB=nf>.3?lamps.length*2:0,kwP=on?pumps.length*20:0,kwR=rests.length*8+alms.length*5,kw=kwG+kwL+kwB+kwP+kwR,lw=on*40,st=resStatus(),H=hourNow(),clock=(H|0)+':'+('0'+(((H%1)*60)|0)).slice(-2);
+ const sk=agents.filter(a=>a.st==='ski').length,rd=agents.filter(a=>a.st==='ride').length,wt=agents.length-sk-rd;
+ const strom=lifts.length*100+trafos.length*60+lamps.length*20+rests.length*80,wasser=pumps.length*80+on*60,sonst=r.exp-strom-wasser,back='<button data-app="desk">← Desktop</button>';
+ const row=(a,b)=>'<tr><td>'+a+'</td><td>'+b+'</td></tr>';let b='';
+ if(pcApp==='desk')b='<div class="pcg">'+[['offen','🎿','Skigebiet',resOpen?'GEÖFFNET':'geschlossen'],['holz','🪵','Holz',wood+' Stück'],['strom','⚡','Strom',kw+' kW'],['wasser','💧','Wasser',lw+' l/min'],['tag','📊','Tagesbericht',''],['besucher','👥','Besucher',agents.length+' im Gebiet']].map(a=>'<button class="pci" data-app="'+a[0]+'"><span>'+a[1]+'</span>'+a[2]+'<small>'+a[3]+'</small></button>').join('')+'</div>';
+ else if(pcApp==='offen')b=back+'<h3>🎿 Skigebiet</h3>Status: <b>'+(resOpen?'🟢 GEÖFFNET':'🔴 geschlossen')+'</b><br><button data-act="toggle" style="font-size:16px;padding:10px 18px;margin:8px 0;background:'+(resOpen?'#a33':'#2a8a4a')+'">'+(resOpen?'Skigebiet schließen':'Skigebiet öffnen')+'</button><br>Skipass-Preis: <button data-act="pm">−</button> <b>'+skiPrice+' €</b> <button data-act="pp">+</button><br><small>Gäste kaufen den Skipass an der Talstation, fahren mit Lift oder Gondel hoch und fahren nur auf deinen Pisten ab. Öffnungszeit 8:00–16:30 Uhr. Je günstiger der Pass, desto mehr Gäste.</small><br>'+(st.ok?'✅ Bereit zum Öffnen':'⚠️ '+st.msg);
+ else if(pcApp==='holz')b=back+'<h3>🪵 Holz nachbestellen</h3>Im Lager: <b>'+wood+' Stück</b> (1 Holz ≈ 8 m Zaun)<br><button data-act="b10" style="margin:6px 4px 0 0">+10 Holz · 500 €</button><button data-act="b50" style="margin-top:6px">+50 Holz · 2.250 €</button>';
+ else if(pcApp==='strom')b=back+'<h3>⚡ Strom</h3><table>'+row('Schneekanonen',kwG+' kW')+row('Lifte / Gondeln',kwL+' kW')+row('Beleuchtung',kwB+' kW')+row('Pumpen',kwP+' kW')+row('Gastronomie',kwR+' kW')+row('<b>Gesamt</b>','<b>'+kw+' kW</b>')+row('Stromkosten pro Tag','<b>'+eur(strom)+' €</b>')+'</table>';
+ else if(pcApp==='wasser')b=back+'<h3>💧 Wasser</h3><table>'+row('Verbrauch (Kanonen an)',lw+' l/min')+row('Pumpen',pumps.length)+row('Wasserkosten pro Tag','<b>'+eur(wasser)+' €</b>')+'</table>';
+ else if(pcApp==='tag')b=back+'<h3>📊 Tagesbericht</h3><table>'+row('Skipässe verkauft',ticketsToday)+row('Einnahmen Skipässe',eur(revToday)+' €')+row('Gastro &amp; Sonstiges (Prognose)',eur(r.extra)+' €')+row('Kosten (Strom '+eur(strom)+', Wasser '+eur(wasser)+', Rest '+eur(sonst)+')','−'+eur(r.exp)+' €')+row('<b>Gewinn (Prognose)</b>','<b>'+eur(r.inc-r.exp)+' €</b>')+row('Präparierte Pistenfelder',r.gp)+'</table><small>Die Kosten werden am Tagesende abgebucht.</small>';
+ else if(pcApp==='besucher')b=back+'<h3>👥 Besucher</h3><table>'+row('Aktuell im Skigebiet','<b>'+agents.length+'</b>')+row('… im Lift',rd)+row('… auf der Piste',sk)+row('… am Lift / unterwegs',wt)+row('Skipässe heute',ticketsToday)+row('Umsatz heute',eur(revToday)+' €')+row('Erwartete Gäste pro Tag',pot|0)+'</table>'+(resOpen?'':'<small>Das Skigebiet ist geschlossen.</small>');
+ const t='🖥 Büro-Computer · '+clock+' Uhr · Kasse '+eur(money)+' €',h=t+'|'+b;if(!force&&h===pcH)return;pcH=h;$('pcT').textContent=t;$('pcb').innerHTML=b}
+$('pcui').addEventListener('click',e=>{if(e.target===$('pcui')){pcAct('close');return}const b=e.target.closest&&e.target.closest('button');if(!b)return;if(b.dataset.app){pcApp=b.dataset.app;renderPC(true)}else if(b.dataset.act)pcAct(b.dataset.act)});
+setInterval(()=>{try{renderPC(false)}catch(e){}},1000);
 // ---------- Pistenzaun ----------
 const fenceMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false});
 const fenceMesh=new THREE.Mesh(new THREE.BufferGeometry(),fenceMat);fenceMesh.frustumCulled=false;scene.add(fenceMesh);
@@ -364,7 +418,7 @@ let loading=false,onFoot=false;const P={x:0,z:0,y:0,yaw:0},pm=new THREE.Group();
  const ht=new THREE.Mesh(new THREE.SphereGeometry(.25,10,8,0,Math.PI*2,0,Math.PI/2),new THREE.MeshStandardMaterial({color:0x2255aa}));ht.position.y=1.98;pm.add(ht)}
 pm.visible=false;scene.add(pm);
 // ---------- Zustand ----------
-let money=250000,day=1,wood=0,dayT=112.5,rep='–',mode='drive',camMode='out',tool='cam',lifts=[],rests=[],guns=[],pumps=[],trafos=[],roads=[],alms=[],tanks=[];
+let money=250000,day=1,wood=0,resOpen=false,skiPrice=25,ticketsToday=0,revToday=0,agents=[],spawnAcc=0,pcApp='desk',dayT=112.5,rep='–',mode='drive',camMode='out',tool='cam',lifts=[],rests=[],guns=[],pumps=[],trafos=[],roads=[],alms=[],tanks=[];
 const DAY=900;
 const toastEl=$('toast');let tt;function toast(s){toastEl.textContent=s;toastEl.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>toastEl.style.opacity=0,1600)}
 function spend(n){if(loading)return true;if(money<n){toast('Zu wenig Geld');return false}money-=n;return true}
@@ -427,19 +481,34 @@ function addTank(p,free){if(!free&&!spend(2500))return;const m=new THREE.Group()
 let tankSel=null;function moveTank(p){if(!tankSel){const t=nearest(tanks,p);if(t&&dist(t,p)<12){tankSel=t;toast('Neuen Platz antippen')}else toast('Tankstelle antippen');return}
  const t=tankSel;tankSel=null;unreg(t.o);t.x=p.x;t.z=p.z;t.m.position.set(p.x,hAt(p.x,p.z),p.z);t.o=rc(p.x,p.z,3);toast('Tankstelle versetzt')}
 const BUE={x:-26,z:473};
-function mkBuro(){const h=hAt(BUE.x,BUE.z),m=new THREE.Group();
- m.add(bm(new THREE.BoxGeometry(12,5,8).translate(0,2.5,0),0xe9edf2),bm(new THREE.BoxGeometry(12.8,.5,8.8).translate(0,5.25,0),0x3b4a5c),bm(new THREE.BoxGeometry(2,3.2,.2).translate(0,1.6,4.05),0x2a4d7a));
- for(const x of[-4,4])m.add(bm(new THREE.BoxGeometry(2.4,1.8,.2).translate(x,2.8,4.05),0x9fd0ee));
+const buroWallMat=new THREE.MeshLambertMaterial({color:0xe9edf2,transparent:true,opacity:1});let buroRoof=null,buroIn=false,pcScr=null,pcBody=null,pcCtx=null,pcTex=null;
+const rcast=new THREE.Raycaster(),ndc=new THREE.Vector2();
+function hitPC(x,y){if(!onFoot||!pcScr||Math.abs(P.x-BUE.x)>7||Math.abs(P.z-BUE.z)>5)return false;ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);rcast.setFromCamera(ndc,cam);return rcast.intersectObjects([pcScr,pcBody],false).length>0}
+function drawPCscr(){const c=pcCtx;if(!c)return;c.fillStyle='#14385c';c.fillRect(0,0,256,160);c.fillStyle='#fff';c.font='bold 14px sans-serif';c.textAlign='left';c.fillText('Skigebiet-OS',8,18);
+ ['🎿','🪵','⚡','💧','📊','👥'].forEach((e,i)=>{const x=14+(i%3)*80,y=34+((i/3)|0)*50;c.fillStyle='#2b5f94';c.fillRect(x,y,66,42);c.font='24px sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText(e,x+33,y+29)});
+ c.textAlign='left';c.font='bold 12px sans-serif';c.fillStyle=resOpen?'#6dff8a':'#ff8a6d';c.fillText(resOpen?'● Skigebiet GEÖFFNET':'● Skigebiet geschlossen',8,148);pcTex.needsUpdate=true}
+function mkBuro(){const h=hAt(BUE.x,BUE.z),m=new THREE.Group(),wl=(w,hh,d,x,z,y0)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,hh,d).translate(x,(y0||0)+hh/2,z),buroWallMat);m.add(q)};
+ wl(12,5,.4,0,-3.8);wl(.4,5,8,-5.8,0);wl(.4,5,8,5.8,0);wl(4.9,5,.4,-3.55,3.8);wl(4.9,5,.4,3.55,3.8);wl(2.2,1.8,.4,0,3.8,3.2);
+ m.add(bm(new THREE.BoxGeometry(11.6,.3,7.6).translate(0,-.1,0),0xb8a88c));
+ buroRoof=bm(new THREE.BoxGeometry(12.8,.5,8.8).translate(0,5.25,0),0x3b4a5c);m.add(buroRoof);
+ for(const x of[-4,4])m.add(bm(new THREE.BoxGeometry(2.4,1.8,.2).translate(x,2.8,4.02),0x9fd0ee));
  const c=document.createElement('canvas');c.width=256;c.height=64;const q=c.getContext('2d');q.fillStyle='#2a4d7a';q.fillRect(0,0,256,64);q.fillStyle='#fff';q.font='bold 44px sans-serif';q.textAlign='center';q.fillText('BÜRO',128,48);
  const sg=new THREE.Mesh(new THREE.PlaneGeometry(5,1.25),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c)}));sg.position.set(0,4.2,4.2);m.add(sg);
- m.position.set(BUE.x,h,BUE.z);scene.add(m);rb(BUE.x-6.3,BUE.x+6.3,BUE.z-4.3,BUE.z+4.3)}
-function updBuro(){const near=onFoot&&dist(P,BUE)<12;$('bBuro').style.display=near?'':'none';const o=$('office');if(o.style.display!=='none'&&dist(onFoot?P:G,BUE)>25)o.style.display='none'}
+ m.add(bm(new THREE.BoxGeometry(3.2,.12,1.3).translate(0,1,-2.9),0x8a6a45));for(const x of[-1.45,1.45])m.add(bm(new THREE.BoxGeometry(.1,1,1.1).translate(x,.5,-2.9),0x5b4630));
+ m.add(bm(new THREE.BoxGeometry(.9,.1,.9).translate(0,.5,-1.6),0x333a44),bm(new THREE.BoxGeometry(.8,.8,.1).translate(0,.9,-1.2),0x333a44));
+ const mc=document.createElement('canvas');mc.width=256;mc.height=160;pcCtx=mc.getContext('2d');pcTex=new THREE.CanvasTexture(mc);
+ pcBody=bm(new THREE.BoxGeometry(1.2,.8,.08).translate(0,1.6,-3.15),0x1a1c20);m.add(pcBody);m.add(bm(new THREE.BoxGeometry(.12,.35,.1).translate(0,1.2,-3.15),0x1a1c20));
+ pcScr=new THREE.Mesh(new THREE.PlaneGeometry(1.08,.68),new THREE.MeshBasicMaterial({map:pcTex}));pcScr.position.set(0,1.6,-3.1);m.add(pcScr);drawPCscr();
+ const lt=new THREE.PointLight(0xfff0d0,.8,14);lt.position.set(0,4,0);m.add(lt);
+ m.position.set(BUE.x,h,BUE.z);scene.add(m);
+ rb(BUE.x-6,BUE.x+6,BUE.z-4,BUE.z-3.6);rb(BUE.x-6,BUE.x-5.6,BUE.z-4,BUE.z+4);rb(BUE.x+5.6,BUE.x+6,BUE.z-4,BUE.z+4);rb(BUE.x-6,BUE.x-1.1,BUE.z+3.6,BUE.z+4);rb(BUE.x+1.1,BUE.x+6,BUE.z+3.6,BUE.z+4);rb(BUE.x-1.7,BUE.x+1.7,BUE.z-3.6,BUE.z-2.2)}
+function updBuro(){const near=onFoot&&Math.hypot(P.x-BUE.x,P.z-(BUE.z-2.3))<4.5;$('bBuro').style.display=near?'':'none';const o=$('office');if(o.style.display!=='none'&&dist(onFoot?P:G,BUE)>25)o.style.display='none'}
 function updFuel(){const t=nearest(tanks,G);$('bFuel').style.display=!onFoot&&mode==='drive'&&t&&dist(t,G)<22&&G.fuel<99?'':'none'}
 $('bFuel').onclick=()=>{const c=Math.round((100-G.fuel)*3);if(spend(c)){G.fuel=100;toast('Getankt für '+c+' €');tone(1)}};
 let offT=0;function updOffice(){const o=$('office');if(o.style.display==='none'||performance.now()-offT<1000)return;offT=performance.now();const r=calcDay(),on=guns.filter(u=>u.on).length;
  const hh='<b>🖥 Büro-Computer</b><br>👥 Gäste heute: '+r.guests+'<br>💶 Einnahmen (Prognose): '+(r.inc|0).toLocaleString('de-DE')+' €<br>📉 Kosten: '+r.exp.toLocaleString('de-DE')+' €<br>📈 Gewinn: '+((r.inc-r.exp)|0).toLocaleString('de-DE')+' €<br>⏱ Gewinn pro Stunde: '+(((r.inc-r.exp)/24)|0).toLocaleString('de-DE')+' €<br>⚡ Strom: '+(on*45+lifts.length*30+(nf>.3?lamps.length*2:0)+(on?pumps.length*20:0)+rests.length*8+alms.length*5)+' kW<br>💧 Wasser: '+on*40+' l/min<br>🏦 Kasse: '+Math.round(money).toLocaleString('de-DE')+' €<br>🪵 Holz: '+wood+' Stück<br><button data-buy="10">+10 Holz · 500 €</button> <button data-buy="50">+50 Holz · 2.250 €</button>';if(o._h!==hh){o._h=hh;o.innerHTML=hh}}
 $('office').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-buy]');if(!b)return;const n=+b.dataset.buy,c=n===10?500:2250;if(spend(c)){wood+=n;toast('+'+n+' Holz gekauft');offT=0;updOffice()}});
-$('bBuro').onclick=()=>{const o=$('office');o.style.display=o.style.display==='none'?'block':'none';offT=0;updOffice()};
+$('bBuro').onclick=()=>openPC();
 function showSum(d,r){const e=$('sum');e.innerHTML='<h2 style="margin:0">Tagesabschluss – Tag '+d+'</h2><div>👥 Gäste: '+r.guests+'<br>💶 Einnahmen: +'+(r.inc|0).toLocaleString('de-DE')+' €<br>📉 Kosten: −'+r.exp.toLocaleString('de-DE')+' €<br><b>Gewinn: '+((r.inc-r.exp)|0).toLocaleString('de-DE')+' €</b><br>🏦 Kasse: '+Math.round(money).toLocaleString('de-DE')+' €</div><button id="sumOk" style="background:#ff8a1f;font-size:16px;padding:10px 26px">Weiter</button>';e.style.display='flex';$('sumOk').onclick=()=>e.style.display='none'}
 function addRest(p){if(!spend(20000))return;const h=hAt(p.x,p.z),cx=((p.x+S/2)/C)|0,cz=((p.z+S/2)/C)|0;
  for(let dz=-5;dz<=5;dz++)for(let dx=-5;dx<=5;dx++){const ix=cx+dx,iz=cz+dz;if(ix<0||iz<0||ix>N||iz>N)continue;const d=Math.hypot(dx,dz)*C;if(d<9){const i=iz*V+ix;H[i]+=(h-H[i])*.9}}
@@ -496,7 +565,7 @@ cv.addEventListener('pointerdown',e=>{if(mode==='build')return;cdp={id:e.pointer
 cv.addEventListener('pointermove',e=>{if(!cdp||e.pointerId!==cdp.id||mode==='build')return;cOff-=(e.clientX-cdp.x)*.006;cPit=cl(cPit+(e.clientY-cdp.y)*.004,-.4,.9);cdp.x=e.clientX;cdp.y=e.clientY});
 const cdEnd=e=>{if(cdp&&e.pointerId===cdp.id)cdp=null};cv.addEventListener('pointerup',cdEnd);cv.addEventListener('pointercancel',cdEnd);
 cv.addEventListener('pointerup',pup);cv.addEventListener('pointercancel',e=>ptrs.delete(e.pointerId));
-function tap(x,y){const p=pick(x,y);if(!p)return;
+function tap(x,y){if(hitPC(x,y)){openPC();return}const p=pick(x,y);if(!p)return;
  if(tool==='cam'){let b=null,bdist=12;guns.forEach(u=>{const d=Math.hypot(u.x-p.x,u.z-p.z);if(d<bdist){bdist=d;b=u}});
   if(b){b.on=!b.on;b.pts.visible=b.on;toast(b.on?'Schneekanone AN (60 €/Tag)':'Schneekanone aus')}else selectPiste(p)}
  else if(tool==='gun')addGun(p);else if(tool==='lamp')addLamp(p);else if(tool==='rest')addRest(p);else if(tool==='lift')addLift(p);else if(tool==='pump')addPump(p);else if(tool==='trafo')addTrafo(p);else if(tool==='road')addRoad(p);else if(tool==='alm')addAlm(p);else if(tool==='tank')addTank(p);else if(tool==='tmove')moveTank(p);else if(tool==='gond')addLift(p,true);else if(tool==='deko')addDeco(p);else if(tool==='jump')addJump(p);else if(tool==='prect')addPRect(p);else if(tool==='pdraw')penSeg(p,p);else if(tool==='zaun')selectPiste(p);else applyBrush(p,true)}
@@ -558,19 +627,18 @@ $('go').onclick=()=>$('intro').remove();
 
 // ---------- Wirtschaft ----------
 function calcDay(){let gp=0;for(let i=0;i<V*V;i++)if(PI[i]&&!PC[i]&&GR[i]>.5&&SN[i]>.75)gp++;
- const guests=Math.floor(Math.min(gp*1.2,lifts.reduce((a,l)=>a+(l.cap||60),0))),eat=Math.min((rests.length+alms.length)*80,guests*.5);
- const inc=guests*18+eat*30+nightG()*14+(guests?alms.length*400:0),on=guns.filter(u=>u.on).length,exp=50+pumps.length*80+trafos.length*60+roads.length*30+alms.length*120+lifts.length*100+rests.length*80+on*60+lamps.length*20;
- return{gp,guests,inc,exp,eat}}
-function newDay(){const r=calcDay(),{gp,guests,inc,exp}=r;money+=inc-exp;rep=gp?`${guests} Gäste`:'keine Gäste';
+ const guests=ticketsToday,eat=Math.min((rests.length+alms.length)*80,guests*.5),extra=eat*30+(guests?nightG()*14+alms.length*400:0),inc=revToday+extra,on=guns.filter(u=>u.on).length,exp=50+pumps.length*80+trafos.length*60+roads.length*30+alms.length*120+lifts.length*100+rests.length*80+on*60+lamps.length*20;
+ return{gp,guests,inc,exp,eat,extra}}
+function newDay(){const r=calcDay(),{gp,guests,inc,exp}=r;money+=r.extra-exp;rep=gp?`${guests} Gäste`:'keine Gäste';
  for(let i=0;i<V*V;i++)if(GR[i]>0)GR[i]*=PI[i]&&guests?.85:.97;dirtyC=true;
- showSum(day,r);day++}
+ showSum(day,r);ticketsToday=0;revToday=0;day++}
 
 // ---------- Hauptschleife ----------
 const fv=new THREE.Vector3(),tmp=new THREE.Vector3();let last=performance.now(),hudT=0,tm=0;
 let __bad=0,__last='',lastMode='';
 function loop(now){requestAnimationFrame(loop);try{loop2(now);__bad=0}catch(e){__bad++;const m=(e&&e.message||String(e));if(m!==__last){__last=m;console.error(e);window.__diagBox&&window.__diagBox('Spielschleife: '+m+' | '+String(e&&e.stack||'').split('\n')[1])}
  if(__bad===60){try{const b=localStorage.getItem(KEY);if(b)localStorage.setItem(KEY+'_defekt',b);localStorage.removeItem(KEY)}catch(_){}if(!sessionStorage.getItem('sk_reload2')){sessionStorage.setItem('sk_reload2','1');location.reload()}}}}
-function loop2(now){{const sh=mode==='build'&&(tool==='pdraw'||tool==='prect');if(sh!==pwShown){pwShown=sh;$('pw').style.display=sh?'flex':'none'}}if(mode!==lastMode){lastMode=mode;dirtyC=true}const dt=Math.min(.05,(now-last)/1000);last=now;tm+=dt;
+function loop2(now){{const ins=onFoot&&Math.abs(P.x-BUE.x)<6.3&&Math.abs(P.z-BUE.z)<4.3;if(ins!==buroIn){buroIn=ins;if(buroRoof)buroRoof.visible=!ins;buroWallMat.opacity=ins?.16:1}const adt=Math.min(.1,Math.max(0,(now-(window.__ap||now))/1000));window.__ap=now;updAgents(adt)}{const sh=mode==='build'&&(tool==='pdraw'||tool==='prect');if(sh!==pwShown){pwShown=sh;$('pw').style.display=sh?'flex':'none'}}if(mode!==lastMode){lastMode=mode;dirtyC=true}const dt=Math.min(.05,(now-last)/1000);last=now;tm+=dt;
  let ix=jx,iy=jy;if(!jp){ix=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);iy=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0)}
  if(mode==='build'){ix=iy=0}
  let wx=0,wy=0;if(onFoot){wx=ix;wy=iy;ix=iy=0}
@@ -644,11 +712,11 @@ const KEY='skigebiet_v1';
 const enc=a=>{const u=new Uint8Array(a.buffer,a.byteOffset,a.byteLength);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
 const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer)};
 function save(quiet){if(typeof started!=='undefined'&&!started)return;try{const sp16=new Int16Array(V*V),h16=new Int16Array(V*V),s8=new Uint8Array(V*V),g8=new Uint8Array(V*V);for(let i=0;i<V*V;i++){h16[i]=Math.round(H[i]*100);sp16[i]=Math.round(SP[i]*100);s8[i]=Math.round(SN[i]*255);g8[i]=Math.round(GR[i]*255)}
- localStorage.setItem(KEY,JSON.stringify({ver:2,money,day,wood,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),FZ:enc(FZ),tanks:tanks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon?1:0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z]),ends:ends.map(e=>[e.x,e.z,e.ux,e.uz,e.hw])}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
+ localStorage.setItem(KEY,JSON.stringify({ver:2,money,day,wood,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),FZ:enc(FZ),tanks:tanks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon?1:0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z]),ends:ends.map(e=>[e.x,e.z,e.ux,e.uz,e.hw]),res:[resOpen?1:0,skiPrice,ticketsToday,Math.round(revToday)]}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
 function load(){try{const j=localStorage.getItem(KEY);if(!j)return;const d=JSON.parse(j);loading=true;
  const kk=d.K?dec(d.K,Uint8Array):null,h=dec(d.H,Int16Array),s=dec(d.S,Uint8Array),r=dec(d.R,Uint8Array),p=dec(d.I,Uint8Array);
  for(let i=0;i<V*V;i++){H[i]=h[i]/100;SN[i]=s[i]/255;GR[i]=r[i]/255;PI[i]=p[i];PC[i]=kk?kk[i]:0}if(d.FZ){const fz=dec(d.FZ,Uint8Array);for(let i=0;i<V*V;i++)FZ[i]=fz[i]}if(d.ver!==2)for(let iz=0;iz<V;iz++){const b=cl((iz*C-S/2-360)/50,0,1),sb=b*b*(3-2*b);if(sb>0)for(let ix=0;ix<V;ix++){const i=iz*V+ix;H[i]=H[i]*(1-sb)+3*sb}}if(d.SP){const q=dec(d.SP,Int16Array);for(let i=0;i<V*V;i++)SP[i]=q[i]/100}
- (d.ends||[]).forEach(a=>ends.push({x:a[0],z:a[1],ux:a[2],uz:a[3],hw:a[4]}));(d.pumps||[]).forEach(a=>addPump({x:a[0],z:a[1]}));(d.trafos||[]).forEach(a=>addTrafo({x:a[0],z:a[1]}));
+ if(d.res){resOpen=!!d.res[0];skiPrice=d.res[1]||25;ticketsToday=d.res[2]||0;revToday=d.res[3]||0}(d.ends||[]).forEach(a=>ends.push({x:a[0],z:a[1],ux:a[2],uz:a[3],hw:a[4]}));(d.pumps||[]).forEach(a=>addPump({x:a[0],z:a[1]}));(d.trafos||[]).forEach(a=>addTrafo({x:a[0],z:a[1]}));
  (d.tanks||[]).forEach(a=>addTank({x:a[0],z:a[1]},true));
  d.guns.forEach(a=>{addGun({x:a[0],z:a[1]});if(a[2]){const u=guns[guns.length-1];u.on=true;u.pts.visible=true}});
  d.rests.forEach(a=>addRest({x:a[0],z:a[1]}));(d.lamps||[]).forEach(a=>addLamp({x:a[0],z:a[1]}));
@@ -660,4 +728,4 @@ if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}
 let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v14</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v15</div></body></html>
