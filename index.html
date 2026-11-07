@@ -32,7 +32,7 @@ button.on,button.sel{background:var(--ac)}
 <canvas id="c"></canvas>
 <div class="hud"><span class="chip" id="hMoney"></span><span class="chip" id="hDay"></span><span class="chip" id="hSnow"></span><span class="chip" id="hRep"></span><span class="chip" id="hFuel"></span><span class="chip" id="hSpd"></span></div>
 <div id="top"><button id="bFs">⛶</button><button id="bSnd">🔊</button><button id="bSave">💾</button><button id="bBuild">🏗 Bauen</button></div>
-<div id="pc" style="display:none;position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);gap:4px;background:var(--bg);padding:4px;border-radius:12px"><button data-t="close">⛔ Sperren</button><button data-t="open">✅ Öffnen</button><button id="bPDone" style="display:none">✔ Fertig</button></div><div id="joy"><div id="knob"></div></div>
+<div id="pc" style="display:none;position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);gap:4px;background:var(--bg);padding:4px;border-radius:12px"><button data-t="close">⛔ Sperren</button><button data-t="open">✅ Öffnen</button><button id="bPDone" style="display:none">✔ Fertig</button><button id="bPDel" style="display:none">🗑 Löschen</button></div><div id="joy"><div id="knob"></div></div>
 <div id="drive"><div id="gp"><div id="tach"><div id="tachF"></div></div><span class="chip" id="gTxt">Gang 1</span><button id="bGd">−</button><button id="bGu">+</button><button id="bAuto" class="on">⚙ Auto</button></div><button id="bBuro" style="display:none">🚪 Büro betreten</button><button id="bFuel" style="display:none">⛽ Tanken</button><button id="bUse" style="display:none">🔧 Bedienen</button><button id="bFoot">🚶 Aussteigen</button><button id="bCam">📷 Außen</button><button id="bTill">❄ Fräse aus</button><button id="bBlade">⛏ Schild: oben</button><button id="bVeh">🚜 Fahrzeug</button></div><div id="vm"></div>
 <div id="tools"><div id="info"></div><div id="row">
 <button data-t="cam">✋ Bewegen / Kanone an-aus</button>
@@ -152,6 +152,16 @@ function endStroke(){
  const cells=[...set];if(!cells.length){toast('Hier ist schon alles Piste');return}
  if(!spend(cells.length*2))return;
  cells.forEach(i=>PI[i]=1);ne.forEach(e=>ends.push(e));dirtyC=true;toast(msg)}
+// ---------- Piste antippen & löschen ----------
+let selCells=null;
+function clearSel(){if(selCells){selCells=null;dirtyC=true}const d=$('bPDel');if(d)d.style.display='none'}
+function selectPiste(p){
+ const ix=Math.round((p.x+S/2)/C),iz=Math.round((p.z+S/2)/C);let start=-1;
+ for(let dz=-1;dz<=1&&start<0;dz++)for(let dx=-1;dx<=1;dx++){const x=ix+dx,z=iz+dz;if(x>=0&&z>=0&&x<=N&&z<=N&&PI[z*V+x]){start=z*V+x;break}}
+ if(start<0){clearSel();return}
+ const set=new Set([start]),q=[start];
+ while(q.length){const i=q.pop(),x=i%V,z=(i/V)|0;for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+d[0],b=z+d[1];if(a<0||b<0||a>N||b>N)continue;const j=b*V+a;if(PI[j]&&!set.has(j)){set.add(j);q.push(j)}}}
+ selCells=set;const d=$('bPDel');d.textContent='🗑 Piste löschen (+'+(set.size*2).toLocaleString('de-DE')+' €)';d.style.display='';dirtyC=true}
 // ---------- Pistenzaun ----------
 const fenceMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false});
 const fenceMesh=new THREE.Mesh(new THREE.BufferGeometry(),fenceMat);fenceMesh.frustumCulled=false;scene.add(fenceMesh);
@@ -172,7 +182,7 @@ function paint(){fsig=0;for(let i=0;i<V*V;i++){const ix=i%V,iz=(i/V)|0,h=H[i];
  let sr=.8,sg=.85,sb=.9;if(PI[i]){sr=.7;sg=.8;sb=.93}if(PC[i]){sr=.95;sg=.5;sb=.45}
  const q=GR[i];if(q>0){sr+=(.92-sr)*q;sg+=(.94-sg)*q;sb+=(.97-sb)*q}
  const sn=Math.min(1,(.55+SN[i]*.75)*(s>.85?.7:1));
- const pl=cl(SP[i]*2,0,1);col[3*i]=(br+(sr-br)*sn)*(1-pl)+.95*pl;col[3*i+1]=(bg+(sg-bg)*sn)*(1-pl)+.97*pl;col[3*i+2]=(bb+(sb-bb)*sn)*(1-pl)+pl;if(PI[i]){if(mode==='build'){const cr=PC[i]?1:.3,cg=PC[i]?.3:.65,cb=PC[i]?.28:1,m=PC[i]?.5:.4;col[3*i]+=(cr-col[3*i])*m;col[3*i+1]+=(cg-col[3*i+1])*m;col[3*i+2]+=(cb-col[3*i+2])*m}fsig+=(i%9973)+1+(PC[i]?50000:0)+Math.round(H[i]*4)}}
+ const pl=cl(SP[i]*2,0,1);col[3*i]=(br+(sr-br)*sn)*(1-pl)+.95*pl;col[3*i+1]=(bg+(sg-bg)*sn)*(1-pl)+.97*pl;col[3*i+2]=(bb+(sb-bb)*sn)*(1-pl)+pl;if(PI[i]){if(mode==='build'){const cr=PC[i]?1:.3,cg=PC[i]?.3:.65,cb=PC[i]?.28:1,m=PC[i]?.5:.4;col[3*i]+=(cr-col[3*i])*m;col[3*i+1]+=(cg-col[3*i+1])*m;col[3*i+2]+=(cb-col[3*i+2])*m;if(selCells&&selCells.has(i)){col[3*i]+=(1-col[3*i])*.7;col[3*i+1]+=(.62-col[3*i+1])*.7;col[3*i+2]+=(.1-col[3*i+2])*.7}}fsig+=(i%9973)+1+(PC[i]?50000:0)+Math.round(H[i]*4)}}
  geo.attributes.color.needsUpdate=true;fsig+=ends.length*7919;if(fsig!==fsigLast){fsigLast=fsig;buildFence()}}
 syncPos();paint();
 // ---------- Kollision ----------
@@ -480,12 +490,15 @@ const cdEnd=e=>{if(cdp&&e.pointerId===cdp.id)cdp=null};cv.addEventListener('poin
 cv.addEventListener('pointerup',pup);cv.addEventListener('pointercancel',e=>ptrs.delete(e.pointerId));
 function tap(x,y){const p=pick(x,y);if(!p)return;
  if(tool==='cam'){let b=null,bdist=12;guns.forEach(u=>{const d=Math.hypot(u.x-p.x,u.z-p.z);if(d<bdist){bdist=d;b=u}});
-  if(b){b.on=!b.on;b.pts.visible=b.on;toast(b.on?'Schneekanone AN (60 €/Tag)':'Schneekanone aus')}}
+  if(b){b.on=!b.on;b.pts.visible=b.on;toast(b.on?'Schneekanone AN (60 €/Tag)':'Schneekanone aus')}else selectPiste(p)}
  else if(tool==='gun')addGun(p);else if(tool==='lamp')addLamp(p);else if(tool==='rest')addRest(p);else if(tool==='lift')addLift(p);else if(tool==='pump')addPump(p);else if(tool==='trafo')addTrafo(p);else if(tool==='road')addRoad(p);else if(tool==='alm')addAlm(p);else if(tool==='tank')addTank(p);else if(tool==='tmove')moveTank(p);else if(tool==='gond')addLift(p,true);else if(tool==='deko')addDeco(p);else if(tool==='jump')addJump(p);else if(tool==='prect')addPRect(p);else applyBrush(p,true)}
-const hints={pdraw:'Mit dem Finger von oben nach unten über die Karte wischen: die Piste wird automatisch begradigt und geglättet (2 € pro Feld). Geschlossene Form wischen = Fläche',prect:'Punkte nacheinander antippen (auch Kurven). ✔ Fertig beendet die Piste, vorne und hinten bleibt sie offen. 2 € pro Feld, Breite = Pinselgröße',jump:'Schanze: Start antippen, dann Absprungrichtung antippen (8–26 m, 2.000 €). Mit dem Schneeschild wieder wegschiebbar',cam:'Ziehen: Karte verschieben · Zwei Finger: Zoom · Kanone antippen: an/aus',up:'Ziehen: Gelände anheben (6 € pro Schritt)',down:'Ziehen: Gelände absenken (6 € pro Schritt)',piste:'Ziehen: Piste markieren (2 € pro Feld)',lift:'Tal- und Bergstation antippen',rest:'Platz antippen (ebnet Boden ein)',gun:'Braucht Pumpe + Trafo. Wasser- und Stromleitung (25/15 € pro m) werden automatisch gelegt',pump:'Wasserpumpe im Tal setzen (80 €/Tag)',trafo:'Trafostation setzen (60 €/Tag)',road:'Straße: Start an Talstation/Restaurant/Straßenende, dann Ziel antippen',alm:'Alm am Ende einer Straße setzen (max. 30 m Abstand)',tank:'Tankstelle setzen (Tanken: 3 € pro %)',gond:'Tal- und Bergstation antippen (Seilbahn, 120 Gäste)',deko:'Antippen: Deko setzen. Vorhandene Deko antippen: entfernen',tmove:'Tankstelle antippen, dann neuen Platz antippen',close:'Ziehen: Piste sperren (rot, keine Gäste)',open:'Ziehen: gesperrte Piste wieder öffnen',lamp:'Mast antippen: beleuchtet nachts die Piste (1.500 €, 20 €/Tag, Nachtgäste)'};
-document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tool=b.dataset.t;if(tool!=='prect')cancelPR();if(b.dataset.d)decoT=b.dataset.d;document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('sel',x===b));$('info').textContent=hints[tool]});
+const hints={pdraw:'Mit dem Finger von oben nach unten über die Karte wischen: die Piste wird automatisch begradigt und geglättet (2 € pro Feld). Geschlossene Form wischen = Fläche',prect:'Punkte nacheinander antippen (auch Kurven). ✔ Fertig beendet die Piste, vorne und hinten bleibt sie offen. 2 € pro Feld, Breite = Pinselgröße',jump:'Schanze: Start antippen, dann Absprungrichtung antippen (8–26 m, 2.000 €). Mit dem Schneeschild wieder wegschiebbar',cam:'Ziehen: Karte verschieben · Zwei Finger: Zoom · Kanone antippen: an/aus · Piste antippen: löschen',up:'Ziehen: Gelände anheben (6 € pro Schritt)',down:'Ziehen: Gelände absenken (6 € pro Schritt)',piste:'Ziehen: Piste markieren (2 € pro Feld)',lift:'Tal- und Bergstation antippen',rest:'Platz antippen (ebnet Boden ein)',gun:'Braucht Pumpe + Trafo. Wasser- und Stromleitung (25/15 € pro m) werden automatisch gelegt',pump:'Wasserpumpe im Tal setzen (80 €/Tag)',trafo:'Trafostation setzen (60 €/Tag)',road:'Straße: Start an Talstation/Restaurant/Straßenende, dann Ziel antippen',alm:'Alm am Ende einer Straße setzen (max. 30 m Abstand)',tank:'Tankstelle setzen (Tanken: 3 € pro %)',gond:'Tal- und Bergstation antippen (Seilbahn, 120 Gäste)',deko:'Antippen: Deko setzen. Vorhandene Deko antippen: entfernen',tmove:'Tankstelle antippen, dann neuen Platz antippen',close:'Ziehen: Piste sperren (rot, keine Gäste)',open:'Ziehen: gesperrte Piste wieder öffnen',lamp:'Mast antippen: beleuchtet nachts die Piste (1.500 €, 20 €/Tag, Nachtgäste)'};
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tool=b.dataset.t;if(tool!=='prect')cancelPR();if(tool!=='cam')clearSel();if(b.dataset.d)decoT=b.dataset.d;document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('sel',x===b));$('info').textContent=hints[tool]});
+$('bPDel').onclick=()=>{if(!selCells)return;const n=selCells.size;selCells.forEach(i=>{PI[i]=0;PC[i]=0});
+ for(let k=ends.length-1;k>=0;k--){const e=ends[k],ex=Math.round((e.x+S/2)/C),ez=Math.round((e.z+S/2)/C);let hit=false;for(let dz=-2;dz<=2&&!hit;dz++)for(let dx=-2;dx<=2;dx++){const x=ex+dx,z=ez+dz;if(x>=0&&z>=0&&x<=N&&z<=N&&selCells.has(z*V+x)){hit=true;break}}if(hit)ends.splice(k,1)}
+ money+=n*2;clearSel();dirtyC=true;toast('Piste gelöscht, +'+(n*2).toLocaleString('de-DE')+' €')};
 $('bPDone').onclick=()=>{cancelPR();toast('Piste fertig')};
-$('bBuild').onclick=()=>{if(mode==='build')cancelPR();mode=mode==='build'?'drive':'build';const b=mode==='build';$('bBuild').textContent=b?'🚜 Fahren':'🏗 Bauen';$('bBuild').classList.toggle('on',b);
+$('bBuild').onclick=()=>{if(mode==='build'){cancelPR();clearSel()}mode=mode==='build'?'drive':'build';const b=mode==='build';$('bBuild').textContent=b?'🚜 Fahren':'🏗 Bauen';$('bBuild').classList.toggle('on',b);
  $('tools').style.display=b?'flex':'none';$('pc').style.display=b?'flex':'none';$('joy').style.display=$('drive').style.display=b?'none':'';
  if(b){bf.set(G.x,0,G.z-20);document.querySelector('[data-t=cam]').click()}};
 const manS=()=>{if(G.auto)$('bAuto').click()};
@@ -637,4 +650,4 @@ if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}
 let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v11</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">v12</div></body></html>
