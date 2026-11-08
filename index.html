@@ -329,8 +329,48 @@ function staffParkSet(x,z,ex,ez,ei){const dx=x-ex,dz=z-ez,L=Math.hypot(dx,dz)||1
  g2.position.set(x,hAt(x,z)+.1,z);g2.rotation.y=th;scene.add(g2);staffPark.mesh=g2;staffPark.built=true}
 function staffSlot(k){const o=[0,6,-6][k%3],P=staffPark;return{x:P.x+P.dz*o,z:P.z-P.dx*o}}
 function groomAt(x,z,dt){const cx=((x+S/2)/C)|0,cz=((z+S/2)/C)|0;for(let b=cz-3;b<=cz+3;b++)for(let a=cx-3;a<=cx+3;a++){if(a<0||b<0||a>N||b>N||Math.hypot(a-cx,b-cz)*C>4.5)continue;const i=b*V+a;if(SN[i]>.3&&PI[i]){GR[i]=Math.min(1,GR[i]+dt*5);if(WR[i]>0){if(WR[i]>=1)worn--;WR[i]=0}}}}
-function gPlan(s,work,sl){const ci=gCell(s.x,s.z),onPi=ci>=0&&PI[ci]&&!PC[ci],P=staffPark;s.path=[];
- if(work){if(onPi){gRefPT();let p=gPTany?gBfs(ci,i=>gPT[i]===1):null;if(p){s.path=p.map(gXY);s.mode='push';return}p=gBfs(ci,gNeed);if(p){s.path=p.map(gXY);s.mode='work';return}s.rest=30}
+function gWalk(cur,sd){const path=[],ok=i=>i>=0&&i<V*V&&PI[i]&&!PC[i];
+ for(let step=0;step<400;step++){const cx=cur%V,cz=(cur/V)|0;let best=-1,bs=-9;
+  for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const nx=cx+dx,nz=cz+dz;if(nx<0||nz<0||nx>N||nz>N)continue;
+   const j=nz*V+nx;if(!ok(j))continue;const l=Math.hypot(dx,dz);const sc=(dx*sd.x+dz*sd.z)/l;if(sc>bs){bs=sc;best=j}}
+  if(best<0||bs<.5)break;path.push(best);cur=best}
+ return path}
+function gDown(ci){const ix=ci%V,iz=(ci/V)|0;const hx=H[iz*V+Math.min(N,ix+1)]-H[iz*V+Math.max(0,ix-1)],hz=H[Math.min(N,iz+1)*V+ix]-H[Math.max(0,iz-1)*V+ix];const l=Math.hypot(hx,hz)||1;return{x:-hx/l,z:-hz/l}}
+function gTop(ci){const seen=new Set([ci]),q=[ci];let best=ci,qi=0;
+ while(qi<q.length&&q.length<6000){const c=q[qi++];if(H[c]>H[best])best=c;const cx=c%V,cz=(c/V)|0;
+  for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+dx,nz=cz+dz;if(nx<0||nz<0||nx>N||nz>N)continue;const j=nz*V+nx;if(PI[j]&&!PC[j]&&!seen.has(j)){seen.add(j);q.push(j)}}}
+ return best}
+function gNear(x,z){const cx=((x+S/2)/C)|0,cz=((z+S/2)/C)|0;let best=-1,bd=1e9;
+ for(let dz=-6;dz<=6;dz++)for(let dx=-6;dx<=6;dx++){const ix=cx+dx,iz=cz+dz;if(ix<0||iz<0||ix>N||iz>N)continue;const j=iz*V+ix;if(!(PI[j]&&!PC[j]))continue;
+  const wx=ix*C-S/2,wz=iz*C-S/2,d=Math.hypot(wx-x,wz-z);if(d<bd){bd=d;best=j}}
+ return best}
+function gWidth(ci,perp){const p=gXY(ci);let n=1;for(const sg of [1,-1]){for(let k=1;k<=8;k++){const j=gCell(p.x+perp.x*C*k*sg,p.z+perp.z*C*k*sg);if(j>=0&&PI[j]&&!PC[j])n++;else break}}return Math.max(C,n*C)}
+function gSpan(p,perp){let l=0,r=0;for(let k=1;k<=12;k++){const j=gCell(p.x-perp.x*C*k,p.z-perp.z*C*k);if(j>=0&&PI[j]&&!PC[j])l=k;else break}
+ for(let k=1;k<=12;k++){const j=gCell(p.x+perp.x*C*k,p.z+perp.z*C*k);if(j>=0&&PI[j]&&!PC[j])r=k;else break}
+ return{l:(l+.5)*C,r:(r+.5)*C}}
+function gSweep(s,ci){const P=staffPark;
+ if(s.pass===undefined){const gp=gXY(P.ei);const c0=gNear(gp.x,gp.z);const st=c0>=0?c0:P.ei;
+  const gd=gDown(st);const up={x:-gd.x,z:-gd.z},perp={x:-up.z,z:up.x};
+  const p0=gXY(st),sp=gSpan(p0,perp),off=(sp.r-sp.l)/2;
+  s.base0={x:p0.x+perp.x*off,z:p0.z+perp.z*off};s.up=up;s.perp=perp;s.W=Math.max(C,sp.l+sp.r);s.pass=0}
+ const up=s.up,perp=s.perp,base0=s.base0,W=s.W;
+ const cur=gXY(ci),along=(cur.x-base0.x)*up.x+(cur.z-base0.z)*up.z;
+ const frac=[-0.45,-0.22,0,0.22,0.45][s.pass%5];
+ const tx=base0.x+up.x*along+perp.x*frac*W,tz=base0.z+up.z*along+perp.z*frac*W;
+ const start=gNear(tx,tz);s.pass++;
+ if(start<0)return null;
+ const dir=((s.pass-1)%2===0)?up:{x:-up.x,z:-up.z};
+ const toStart=start===ci?[]:(gBfs(ci,i=>i===start)||[]);
+ const all=toStart.concat(gWalk(start,dir));
+ return all.length?all:null}
+function gLane(s,ci){const ix=ci%V,iz=(ci/V)|0;
+ if(!s.sdir){const hx=H[iz*V+Math.min(N,ix+1)]-H[iz*V+Math.max(0,ix-1)],hz=H[Math.min(N,iz+1)*V+ix]-H[Math.max(0,iz-1)*V+ix];
+  const l=Math.hypot(hx,hz)||1;s.sdir={x:hx/l,z:hz/l}}
+ let p=gWalk(ci,s.sdir);
+ if(p.length<2){s.sdir={x:-s.sdir.x,z:-s.sdir.z};p=gWalk(ci,s.sdir)}
+ return p.length?p:null}
+function gPlan(s,work,sl){const ci=gCell(s.x,s.z),onPi=ci>=0&&PI[ci]&&!PC[ci],P=staffPark;s.path=[];if(!work){s.lanePhase=undefined;s.pass=undefined}
+ if(work){if(onPi){const pl=gSweep(s,ci);if(pl){s.path=pl.map(gXY);s.mode='work';return}s.rest=10}
   else if(gHasNeed()&&Math.hypot(s.x-sl.x,s.z-sl.z)<30){s.path=[{x:P.ex,z:P.ez}];s.mode='access';return}else s.rest=6}
  if(onPi&&ci!==P.ei&&PI[P.ei]){const p=gBfs(ci,i=>i===P.ei);if(p){s.path=p.map(gXY).concat([sl]);s.mode='home';return}}
  s.path=[sl];s.mode='home'}
@@ -616,7 +656,7 @@ let loading=false,onFoot=false;const P={x:0,z:0,y:0,yaw:0},pm=new THREE.Group();
 pm.visible=false;scene.add(pm);
 // ---------- Zustand ----------
 let money=250000,day=1,wood=0,resOpen=false,skiPrice=25,ticketsToday=0,revToday=0,agents=[],spawnAcc=0,pcApp='desk',dayT=112.5,rep='–',mode='drive',camMode='out',tool='cam',lifts=[],rests=[],guns=[],pumps=[],trafos=[],roads=[],alms=[],tanks=[],parks=[];
-const DAY=900;
+const DAY=1200;
 const toastEl=$('toast');let tt;function toast(s){toastEl.textContent=s;toastEl.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>toastEl.style.opacity=0,1600)}
 function spend(n){if(BCAP)BCAP.cost+=n;if(loading)return true;if(money<n){toast('Zu wenig Geld');return false}money-=n;return true}
 let dirtyG=false,dirtyC=true,lastG=0,lastC=0;
@@ -1131,4 +1171,4 @@ let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 try{const c=JSON.parse(sessionStorage.getItem('sk_cam')||'null');if(c){sessionStorage.removeItem('sk_cam');bf.x=c[0];bf.z=c[1];bd=c[2];$('bBuild').onclick();const ct=CATS.find(x=>x[2].includes(c[3]));if(ct)showCat(ct[0]);const tb=document.querySelector('#row [data-t="'+c[3]+'"]');if(tb)tb.click()}}catch(_){}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.16</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.17</div></body></html>
