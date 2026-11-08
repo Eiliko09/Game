@@ -33,7 +33,7 @@ button.on,button.sel{background:var(--ac)}
 </style></head><body>
 <canvas id="c"></canvas>
 <div class="hud"><span class="chip" id="hMoney"></span><span class="chip" id="hDay"></span><span class="chip" id="hSnow"></span><span class="chip" id="hRep"></span><span class="chip" id="hFuel"></span><span class="chip" id="hSpd"></span></div>
-<div id="top"><button id="bFs">⛶</button><button id="bSnd">🔊</button><button id="bSave">💾</button><button id="bUndo" title="Schritt zurück">↶</button><button id="bNew" title="Neu anfangen">🔄 Neu</button><button id="bBuild">🏗 Bauen</button></div>
+<div id="top"><button id="bGroom">🚜 Pistenfahrer</button><button id="bFs">⛶</button><button id="bSnd">🔊</button><button id="bSave">💾</button><button id="bUndo" title="Schritt zurück">↶</button><button id="bNew" title="Neu anfangen">🔄 Neu</button><button id="bBuild">🏗 Bauen</button></div>
 <div id="pc" style="display:none;position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);gap:4px;background:var(--bg);padding:4px;border-radius:12px"><button data-t="close">⛔ Sperren</button><button data-t="open">✅ Öffnen</button><button id="bPDone" style="display:none">✔ Fertig</button><button id="bPDel" style="display:none">🗑 Löschen</button><button id="bPFence" style="display:none">🚧 Zaun</button></div><div id="joy"><div id="knob"></div></div>
 <div id="drive"><button id="bSw" style="display:none">🔀 Weiche</button><button id="bRev">⏪ Rückwärts</button><div id="gp"><div id="tach"><div id="tachF"></div></div><span class="chip" id="gTxt">Gang 1</span><button id="bGd">−</button><button id="bGu">+</button><button id="bAuto" class="on">⚙ Auto</button></div><button id="bBuro" style="display:none">🖥 Computer benutzen</button><button id="bFuel" style="display:none">⛽ Tanken</button><button id="bUse" style="display:none">🔧 Bedienen</button><button id="bFoot">🚶 Aussteigen</button><button id="bCam">📷 Außen</button><button id="bTill">❄ Fräse aus</button><button id="bBlade">⛏ Schild: oben</button><button id="bVeh">🚜 Fahrzeug</button></div><div id="vm"></div>
 <div id="tools"><div id="info"></div><div id="cats"></div><div id="row">
@@ -370,14 +370,16 @@ function gLane(s,ci){const ix=ci%V,iz=(ci/V)|0;
  if(p.length<2){s.sdir={x:-s.sdir.x,z:-s.sdir.z};p=gWalk(ci,s.sdir)}
  return p.length?p:null}
 function gPlan(s,work,sl){const ci=gCell(s.x,s.z),onPi=ci>=0&&PI[ci]&&!PC[ci],P=staffPark;s.path=[];if(!work){s.lanePhase=undefined;s.pass=undefined}
- if(work){if(onPi){const pl=gSweep(s,ci);if(pl){s.path=pl.map(gXY);s.mode='work';return}s.rest=10}
+ if(work&&!onPi&&window.groomForce){const pn=gBfs(ci,i=>gNeed(i));if(pn){s.path=pn.map(gXY);s.mode='access';return}}
+  if(work){if(onPi){const pl=gSweep(s,ci);if(pl){s.path=pl.map(gXY);s.mode='work';return}s.rest=10}
   else if(gHasNeed()&&Math.hypot(s.x-sl.x,s.z-sl.z)<30){s.path=[{x:P.ex,z:P.ez}];s.mode='access';return}else s.rest=6}
  if(onPi&&ci!==P.ei&&PI[P.ei]){const p=gBfs(ci,i=>i===P.ei);if(p){s.path=p.map(gXY).concat([sl]);s.mode='home';return}}
  s.path=[sl];s.mode='home'}
 function staffFind(){return null}
-function updStaff(dt){if(!staff.length&&staffGunWant===null)return;const h=hourNow(),night=h>=17||h<8||wxK==='thaw';
+function updStaff(dt){if(!staff.length&&staffGunWant===null)return;
+ if(window.groomForce&&cntStaff('groom')&&!gHasNeed()){window.groomForce=false;$('bGroom').classList.remove('on');toast('Piste ist sauber – Pistenfahrer fährt in die Garage')}const h=hourNow(),night=h>=17||h<8||wxK==='thaw';
  if(cntStaff('snow')){if(staffGunWant!==night){staffGunWant=night;guns.forEach(u=>{u.on=night;u.pts.visible=night})}}else staffGunWant=null;
- const work=h>=16.5||h<8||!resOpen,hb=(typeof BUE!=='undefined'&&BUE)?BUE:{x:-26,z:473},VH=VEH.raupe;let gi=0;
+ const work=window.groomForce||h>=16.5||h<8||!resOpen,hb=(typeof BUE!=='undefined'&&BUE)?BUE:{x:-26,z:473},VH=VEH.raupe;let gi=0;
  for(const s of staff){
   if(s.t!=='groom'){ // Fußgänger mit Warnweste: Techniker läuft zu den Kanonen, Marketing flaniert beim Büro
    if(!s.m){s.m=mkVest();scene.add(s.m);s.x=hb.x+8+Math.random()*6;s.z=hb.z+10+Math.random()*6;s.ph=Math.random()*6;s.wt=0;s.tx=s.x;s.tz=s.z}
@@ -1150,7 +1152,7 @@ function load(){try{const j=localStorage.getItem(KEY);if(!j)return;const d=JSON.
  d.lifts.forEach(a=>{liftA=null;addLift(new THREE.Vector3(a[0],0,a[1]));(window.__pylOv=Array.isArray(a[6])?a[6]:null,addLift(new THREE.Vector3(a[2],0,a[3]),a[4]));if(a[5]&&lifts.length)lifts[lifts.length-1].stop=true});(d.decos||[]).forEach(a=>{decoT=a[0];addDeco({x:a[1],z:a[2]})});decoT='tree';
  (d.roads||[]).forEach(a=>{roadA=null;addRoad({x:a[0],z:a[1],clone(){return this}});addRoad({x:a[2],z:a[3]})});(d.alms||[]).forEach(a=>addAlm({x:a[0],z:a[1]}));
  money=d.money;day=d.day;wood=d.wood||0;Object.assign(G,d.G);if(d.F)for(const k in d.F)if(FL[k])FL[k]={x:d.F[k][0],z:d.F[k][1],yaw:d.F[k][2],fuel:d.F[k][3]};dirtyG=dirtyC=true;loading=false;toast('Spielstand geladen')}catch(e){loading=false;console.error('Laden fehlgeschlagen',e);try{const bad=localStorage.getItem(KEY);if(bad){localStorage.setItem(KEY+'_defekt',bad);localStorage.removeItem(KEY)}}catch(_){}if(!sessionStorage.getItem('sk_reload')){sessionStorage.setItem('sk_reload','1');location.reload();throw new Error('reload')}}}
-$('bSave').onclick=()=>save(false);setInterval(()=>save(true),30000);document.addEventListener('visibilitychange',()=>{if(document.hidden)save(true)});addEventListener('pagehide',()=>save(true));
+$('bGroom').onclick=()=>{if(!cntStaff('groom')){toast('Erst einen Pistenfahrer einstellen');return}window.groomForce=!window.groomForce;$('bGroom').classList.toggle('on',window.groomForce);toast(window.groomForce?'Pistenfahrer fährt jetzt':'Pistenfahrer fährt nach Zeitplan')};$('bSave').onclick=()=>save(false);setInterval(()=>save(true),30000);document.addEventListener('visibilitychange',()=>{if(document.hidden)save(true)});addEventListener('pagehide',()=>save(true));
 if(/[?&#]reset/.test(location.href)){try{localStorage.removeItem(KEY)}catch(_){}}
 // ---------- Rückgängig / Neuanfang ----------
 let snapCap=false,snapStr=null,pend=null,undoSt=[];try{undoSt=JSON.parse(sessionStorage.getItem('sk_undo')||'[]')}catch(_){undoSt=[]}
@@ -1171,4 +1173,4 @@ let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 try{const c=JSON.parse(sessionStorage.getItem('sk_cam')||'null');if(c){sessionStorage.removeItem('sk_cam');bf.x=c[0];bf.z=c[1];bd=c[2];$('bBuild').onclick();const ct=CATS.find(x=>x[2].includes(c[3]));if(ct)showCat(ct[0]);const tb=document.querySelector('#row [data-t="'+c[3]+'"]');if(tb)tb.click()}}catch(_){}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.17</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.18</div></body></html>
