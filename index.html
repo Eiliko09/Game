@@ -162,23 +162,31 @@ function liftTop(l){const t=performance.now();if(l._tt&&t-l._tt<3000)return l.to
  for(let dz=-10;dz<=10;dz++)for(let dx=-10;dx<=10;dx++){const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i])continue;const x=jx*C-S/2,z=jz*C-S/2,d=Math.hypot(x-l.B.x,z-l.B.z);if(d<bd){bd=d;l.top={x,z}}}
  return l.top}
 function resStatus(){if(!lifts.length)return{ok:false,msg:'Es gibt noch keinen Lift / keine Gondel.'};if(!lifts.some(l=>liftTop(l)))return{ok:false,msg:'An keiner Bergstation beginnt eine Piste (Piste bis ca. 40 m an die Bergstation malen).'};return{ok:true,msg:'Bereit'}}
-function curPot(){const r=calcDay(),cap=lifts.reduce((a,l)=>a+(l.cap||60),0),pf=Math.max(.2,Math.min(1.4,1.6-skiPrice/40));return Math.min(r.gp*.8,cap*1.5)*pf*(1+.12*cntStaff('mkt'))}
+function curPot(){const r=calcDay(),cap=lifts.reduce((a,l)=>a+(l.cap||60),0),pf=Math.max(.2,Math.min(1.4,1.6-skiPrice/40));return Math.min(r.gp*.8,cap*1.5)*pf*(1+.12*cntStaff('mkt'))*dayMul*WX[wxK].m}
 function onP(x,z){const ix=Math.round((x+S/2)/C),iz=Math.round((z+S/2)/C);if(ix<0||iz<0||ix>N||iz>N)return false;const i=iz*V+ix;return !!PI[i]&&!PC[i]}
-// Flussfeld: kürzester Pistenweg zur Nähe jeder Talstation (verhindert Kreisfahren)
-let ffD=null,ffT=0,ffQ=null;
-function flowField(){const now=performance.now();if(ffD&&now-ffT<6000)return ffD;ffT=now;if(!ffD){ffD=new Int32Array(V*V);ffQ=new Int32Array(V*V)}const D=ffD,Q=ffQ;D.fill(-1);let qh=0,qt=0;
- for(const l of lifts){const ix=Math.round((l.A.x+S/2)/C),iz=Math.round((l.A.z+S/2)/C);let bd=1e9,bi=-1;
+// Flussfeld: kürzester Pistenweg zur Talstation (mode 0 = nächste Station, 1 = nur ganz ins Tal)
+let ffD=[null,null],ffT=[0,0],ffQ=null;
+function valleyLifts(){return lifts.filter(l=>!lifts.some(m=>m!==l&&Math.hypot(m.B.x-l.A.x,m.B.z-l.A.z)<90))}
+function flowField(mode){const now=performance.now();if(ffD[mode]&&now-ffT[mode]<6000)return ffD[mode];ffT[mode]=now;if(!ffQ)ffQ=new Int32Array(V*V);if(!ffD[mode])ffD[mode]=new Int32Array(V*V);const D=ffD[mode],Q=ffQ;D.fill(-1);let qh=0,qt=0;
+ let src=lifts;if(mode===1){const vl=valleyLifts();if(vl.length)src=vl}
+ for(const l of src){const ix=Math.round((l.A.x+S/2)/C),iz=Math.round((l.A.z+S/2)/C);let bd=1e9,bi=-1;
   for(let dz=-15;dz<=15;dz++)for(let dx=-15;dx<=15;dx++){const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i])continue;const d=Math.hypot(dx,dz);if(d<bd){bd=d;bi=i}}
   if(bi<0)continue;const bx=bi%V,bz=(bi/V)|0;
   for(let dz=-3;dz<=3;dz++)for(let dx=-3;dx<=3;dx++){const jx=bx+dx,jz=bz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(PI[i]&&!PC[i]&&D[i]<0){D[i]=0;Q[qt++]=i}}}
  while(qh<qt){const i=Q[qh++],x=i%V,z=(i/V)|0,d=D[i]+1;
   for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=x+dx,jz=z+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const j=jz*V+jx;if(D[j]>=0||!PI[j]||PC[j])continue;D[j]=d;Q[qt++]=j}}
  return D}
-function nextFrom(x,z,rc){const ix=Math.round((x+S/2)/C),iz=Math.round((z+S/2)/C),cur=hAt(x,z);let best=null;
- if(ix>=0&&iz>=0&&ix<=N&&iz<=N){const D=flowField(),di=iz*V+ix,dc=D[di];
+// Fahrspur: jeder Gast bekommt eine eigene Bahn quer zur Pistenbreite
+function laneShift(b,cx,cz,a){let dx=b.x-cx,dz=b.z-cz;const L=Math.hypot(dx,dz);if(L<.5)return b;dx/=L;dz/=L;const px=-dz,pz=dx,bi=Math.round((b.x+S/2)/C),bj=Math.round((b.z+S/2)/C);
+ const ok=k=>{const ii=Math.round((bi*1)+px*k),jj=Math.round(bj+pz*k);if(ii<0||jj<0||ii>N||jj>N)return false;const q=jj*V+ii;return PI[q]&&!PC[q]};
+ let eL=0,eR=0;for(let k=1;k<=8;k++){if(ok(k))eL=k;else break}for(let k=1;k<=8;k++){if(ok(-k))eR=k;else break}
+ const hi=Math.max(0,eL-1),lo=-Math.max(0,eR-1);if(hi-lo<1)return b;a.ln=cl(a.ln+(Math.random()-.5)*.3,-1,1);const t=lo+(hi-lo)*(a.ln+1)/2;
+ const nx=b.x+px*t*C,nz=b.z+pz*t*C;if(!onP(nx,nz))return b;return{x:nx,z:nz,i:(Math.round((nz+S/2)/C))*V+Math.round((nx+S/2)/C)}}
+function nextFrom(x,z,rc,ag){const ix=Math.round((x+S/2)/C),iz=Math.round((z+S/2)/C),cur=hAt(x,z);let best=null;
+ if(ix>=0&&iz>=0&&ix<=N&&iz<=N){const di=iz*V+ix;let D=flowField(ag&&ag.low?1:0);if(ag&&ag.low&&D[di]<0)D=flowField(0);const dc=D[di];
   if(dc===0)return null;
   if(dc>0){let bh=1e9,bdd=dc;for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(D[i]<0||!PI[i]||PC[i])continue;const X=jx*C-S/2,Z=jz*C-S/2,h=hAt(X,Z);if(D[i]<bdd||(D[i]===bdd&&best&&h<bh)){bdd=D[i];bh=h;best={x:X,z:Z,i}}}
-   if(best)return best}}
+   if(best)return ag?laneShift(best,x,z,ag):best}}
  for(const up of [.2,.8]){let bh=cur+up;
   for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i]||rc.includes(i))continue;const X=jx*C-S/2,Z=jz*C-S/2,h=hAt(X,Z);if(h<bh){bh=h;best={x:X,z:Z,i}}}
   if(best)break}
@@ -187,7 +195,7 @@ function skiPose(a,dt){const sn=Math.sin(a.yw),cs=Math.cos(a.yw),tp=cl(Math.atan
 // Skifahren: gleitet mit Schwung, schwingt in Kurven und bleibt auf markierter, offener Piste
 function skiStep(a,dt){const q=a.pq;
  while(q.length){const c=q[0],d0=Math.hypot(c.x-a.x,c.z-a.z);if(d0<3.6||(q.length>1&&Math.hypot(q[1].x-a.x,q[1].z-a.z)<d0)){wearCell(c.i);q.shift()}else break}
- while(q.length<3&&!a.fin){const l=q.length?q[q.length-1]:a,n=nextFrom(l.x,l.z,a.rc);if(!n){a.fin=1;break}q.push(n)}
+ while(q.length<3&&!a.fin){const l=q.length?q[q.length-1]:a,n=nextFrom(l.x,l.z,a.rc,a);if(!n){a.fin=1;break}q.push(n)}
  const coast=a.fin&&!q.length;let step=0;
  if(q.length){const t=q[Math.min(1,q.length-1)],pa=Math.atan2(t.x-a.x,t.z-a.z);let des=pa;
   if(a.v>5){const amp=cl(.16+(a.v-5)*.05,0,.6)*(a.bd?1.2:1),cd=pa+Math.sin(a.cp)*amp;if(onP(a.x+Math.sin(cd)*3.5,a.z+Math.cos(cd)*3.5)&&onP(a.x+Math.sin(cd)*7,a.z+Math.cos(cd)*7))des=cd}
@@ -201,7 +209,7 @@ function skiStep(a,dt){const q=a.pq;
  a.sd+=a.v*dt;if(a.sd>2.8){a.sd=0;agStamp(a.bd?bdT:skT,a.x,a.z,a.yw)}
  skiPose(a,dt);return coast&&a.v<.7?1:0}
 function mkAg(l,x,z){const kid=Math.random()<.18,jc=agR(agJK);let pc=agR(agPN);while(pc===jc)pc=agR(agPN);
- return{x,z,y:0,st:'walk',li:l,pass:false,us:new Map(),t:0,vis:true,tg:null,yw:0,ph:Math.random()*6.28,sd:0,car:null,rc:[],jc,pc,hc:agR(agHE),sk:agR(agSK),gc:agR(agGC),sc:kid?.95+Math.random()*.1:1.25+Math.random()*.2,bd:Math.random()<.4,bs:Math.random()<.5?1.15:-1.15,v:4,cp:Math.random()*6.28,cw:12+Math.random()*10,pt:0,rl:0,tr:0,pq:[],fin:0,bad:0}}
+ return{x,z,y:0,st:'walk',li:l,pass:false,us:new Map(),t:0,vis:true,tg:null,yw:0,ph:Math.random()*6.28,sd:0,car:null,rc:[],jc,pc,hc:agR(agHE),sk:agR(agSK),gc:agR(agGC),sc:kid?.95+Math.random()*.1:1.25+Math.random()*.2,bd:Math.random()<.4,bs:Math.random()<.5?1.15:-1.15,v:4,cp:Math.random()*6.28,cw:12+Math.random()*10,pt:0,rl:0,tr:0,pq:[],fin:0,bad:0,ln:Math.random()*2-1,low:0}}
 const _qc=new THREE.Quaternion(),_X=new THREE.Vector3(1,0,0),_Z=new THREE.Vector3(0,0,1);let _pt=0,_rl=0,_by=0;
 function agPut(M,idx,x,y,z,ry,sc,lx,ly,lz,rx,rz,col,sx,sy,sz){_qa.setFromAxisAngle(_Y,ry);
  if(_pt){_qc.setFromAxisAngle(_X,_pt);_qa.multiply(_qc)}if(_rl){_qc.setFromAxisAngle(_Z,_rl);_qa.multiply(_qc)}if(_by){_qc.setFromAxisAngle(_Y,_by);_qa.multiply(_qc)}
@@ -250,7 +258,7 @@ function updAgents(dt){
   else if(a.st==='board'){a.t+=dt;const q=Math.min(1,dt*4);a.x+=(l.A.x-a.x)*q;a.z+=(l.A.z-a.z)*q;a.yw=Math.atan2(l.B.x-l.A.x,l.B.z-l.A.z);a.ph+=dt*5;if(a.t>.9){a.us.set(l,(a.us.get(l)||0)+1);a.st='ride';a.t=0;a.vis=!l.gon;a.y=l.A.y-1.6}}
   else if(a.st==='ride'){const dur=l.L/(l.gon===2?5:l.gon?6:3.5);a.t+=dt;const f=Math.min(1,a.t/dur);a.x=l.A.x+(l.B.x-l.A.x)*f;a.z=l.A.z+(l.B.z-l.A.z)*f;a.y=l.A.y+(l.B.y-l.A.y)*f-1.6;a.vis=!l.gon;a.yw=Math.atan2(l.B.x-l.A.x,l.B.z-l.A.z);
    if(f>=1){const t=liftTop(l);if(t){a.x=l.B.x;a.z=l.B.z;a.st='exit';a.tgt=t;a.vis=true;a.t=0;a.v=2;a.pt=0;a.rl=0;a.tr=0}else{agents.splice(k,1);continue}}}
-  else if(a.st==='exit'){const dx=a.tgt.x-a.x,dz=a.tgt.z-a.z,d=Math.hypot(dx,dz);a.v=Math.min(6,(a.v||0)+dt*2.5);const sp=a.v*dt;a.yw=Math.atan2(dx,dz);skiPose(a,dt);if(d<=sp+.5){a.st='ski';a.pq=[];a.fin=0;a.bad=0;a.sd=0;a.rc=[];a.v=Math.max(a.v,4)}else{a.x+=dx/d*sp;a.z+=dz/d*sp}}
+  else if(a.st==='exit'){const dx=a.tgt.x-a.x,dz=a.tgt.z-a.z,d=Math.hypot(dx,dz);a.v=Math.min(6,(a.v||0)+dt*2.5);const sp=a.v*dt;a.yw=Math.atan2(dx,dz);skiPose(a,dt);if(d<=sp+.5){a.st='ski';a.pq=[];a.fin=0;a.bad=0;a.sd=0;a.rc=[];a.ln=Math.random()*2-1;a.low=Math.random()<dayLow?1:0;a.v=Math.max(a.v,4)}else{a.x+=dx/d*sp;a.z+=dz/d*sp}}
   else if(a.st==='return'){const c=a.car;if(!c||c.st!=='park'){agents.splice(k,1);continue}const dx=c.x-a.x,dz=c.z-a.z,d=Math.hypot(dx,dz),sp=3*dt;a.yw=Math.atan2(dx,dz);if(d<2){agents.splice(k,1);continue}a.x+=dx/d*sp;a.z+=dz/d*sp}
   else if(a.st==='ski'){if(skiStep(a,dt)===1){const f=c=>Math.abs(hAt(c.x,c.z)-hAt(a.x,a.z))<5;let bl=null,bd=1e9;lifts.forEach(q=>{const d=Math.hypot(q.A.x-a.x,q.A.z-a.z);if(d<bd){bd=d;bl=q}});
     const carOK=!!(a.car&&a.car.st==='park'&&Math.hypot(a.car.x-a.x,a.car.z-a.z)<90&&f(a.car)),liftOK=!!(bl&&bd<60&&f(bl.A));
@@ -260,35 +268,102 @@ function updAgents(dt){
  if(worn>=15&&now-lastWear>180000){lastWear=now;toast('⚠ Skipiste sehr abgenutzt – bitte mit der Pistenraupe präparieren!')}
  drawAgents()}
 // ---------- Personal (Mitarbeiter) ----------
-const STAFF_T={groom:{ic:'🚜',n:'Pistenfahrer',w:300,fee:8000,d:'Fährt selbstständig mit einer eigenen Pistenraupe und präpariert abgenutzte Pisten (nachts und vor der Öffnung). Einmalig 8.000 € für die Raupe.'},snow:{ic:'❄',n:'Schneetechniker',w:220,fee:500,d:'Schaltet alle Schneekanonen automatisch nachts an (17–8 Uhr) und tagsüber aus.'},mkt:{ic:'📣',n:'Marketing',w:250,fee:500,d:'Wirbt für dein Skigebiet: +12 % Gäste pro Mitarbeiter.'}};
+const STAFF_T={groom:{ic:'🚜',n:'Pistenfahrer',w:300,fee:8000,d:'Fährt selbstständig mit eigener Raupe NUR auf markierten Pisten, schiebt Schneehaufen der Kanonen weg, präpariert abgenutzte Stellen, räumt Spuren und umfährt Gebäude. Parkt in einer Raupengarage bei der untersten Talstation. Einmalig 8.000 € für die Raupe. Braucht mind. 1 Lift mit Piste.'},snow:{ic:'❄',n:'Schneetechniker',w:220,fee:500,d:'Schaltet alle Schneekanonen automatisch nachts an (17–8 Uhr) und tagsüber aus.'},mkt:{ic:'📣',n:'Marketing',w:250,fee:500,d:'Wirbt für dein Skigebiet: +12 % Gäste pro Mitarbeiter.'}};
 let staff=[],staffId=1,staffGunWant=null;
+// ---------- Wetter & Tagesschwankung ----------
+const WX={sun:{ic:'☀',n:'Sonnig',m:1.15,d:-.00015},cloud:{ic:'⛅',n:'Bewölkt',m:1,d:0},snow:{ic:'🌨',n:'Schneefall',m:1.05,d:.0007},thaw:{ic:'🌧',n:'Tauwetter',m:.8,d:-.0005}};
+let wxK='cloud',dayMul=1,dayLow=.4,wxAcc=0,wxCol=0;
+function rollWeather(){const r=Math.random();wxK=r<.28?'sun':r<.58?'cloud':r<.8?'snow':'thaw';dayMul=.65+Math.random()*.7;dayLow=.2+Math.random()*.45;
+ toast(WX[wxK].ic+' '+WX[wxK].n+(dayMul>1.15?' – viel Andrang erwartet':dayMul<.85?' – ruhiger Tag erwartet':''))}
+function updWeather(dt){wxAcc+=dt;if(wxAcc<1)return;const d=WX[wxK].d*wxAcc;wxAcc=0;if(!d)return;
+ for(let i=0;i<V*V;i++){const v=SN[i];if(d>0){if(v<1)SN[i]=Math.min(1,v+d)}else if(v>.25){SN[i]=Math.max(.25,v+d*cl(1.3-H[i]/70,.4,1.3))}}
+ wxCol++;if(wxCol>=3){wxCol=0;dirtyC=true}}
+
 const cntStaff=t=>staff.filter(q=>q.t===t).length,staffCost=()=>staff.reduce((a,q)=>a+STAFF_T[q.t].w,0);
 function hireStaff(t,n,quiet){const T=STAFF_T[t];if(!T)return;if(cntStaff(t)>=3){toast('Maximal 3 Mitarbeiter pro Beruf');return}if(!quiet&&!spend(T.fee))return;
  const F=['Hans','Sepp','Franz','Peter','Tobias','Lukas','Anna','Lena','Maria','Sabine','Klaus','Eva'],L=['Huber','Gruber','Bauer','Moser','Berger','Wagner','Pichler','Steiner'];
  staff.push({id:staffId++,t,n:n||(F[(Math.random()*F.length)|0]+' '+L[(Math.random()*L.length)|0]),m:null,x:0,z:0,yaw:Math.PI,v:0,tg:null,scan:0,gt:0,tt:0,bx:1e9,bz:1e9});if(!quiet)toast(T.n+' eingestellt ('+eur(T.w)+' €/Tag)')}
 function fireStaff(id){const k=staff.findIndex(q=>q.id===id);if(k<0)return;const q=staff[k];if(q.m)scene.remove(q.m);staff.splice(k,1);toast(q.n+' gekündigt')}
-function staffFind(s){let best=null,bd=1e18;const R=S/2;for(let i=0;i<V*V;i++){if(!PI[i]||PC[i]||SN[i]<=.3||(GR[i]>=.5&&WR[i]<=.3))continue;const x=(i%V)*C-R,z=((i/V)|0)*C-R;
-  if((x-s.bx)*(x-s.bx)+(z-s.bz)*(z-s.bz)<144)continue;let cl2=false;for(const o of staff)if(o!==s&&o.tg!=null){const ox=(o.tg%V)*C-R,oz=((o.tg/V)|0)*C-R;if((x-ox)*(x-ox)+(z-oz)*(z-oz)<400){cl2=true;break}}if(cl2)continue;
-  const d=(x-s.x)*(x-s.x)+(z-s.z)*(z-s.z);if(d<bd){bd=d;best=i}}return best}
-function updStaff(dt){if(!staff.length&&staffGunWant===null)return;const h=hourNow(),night=h>=17||h<8;
+// Mensch mit gelber Warnweste (Ursprung = Hüfte, Blick/Vorwärts = -z)
+function mkVest(){const h=new THREE.Group(),M=(w,hh,d,c,x,y,z,o,P)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,hh,d),new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.75},o||{})));m.position.set(x,y,z);m.castShadow=true;(P||h).add(m);return m};
+ const NAV=0x26344d,JK=0x3b4552,lL=new THREE.Group(),lR=new THREE.Group(),aL=new THREE.Group(),aR=new THREE.Group();
+ lL.position.set(-.12,0,0);lR.position.set(.12,0,0);aL.position.set(-.31,.56,0);aR.position.set(.31,.56,0);
+ for(const l of[lL,lR]){M(.19,.8,.2,NAV,0,-.4,0,null,l);M(.21,.12,.3,0x15171a,0,-.84,-.05,null,l)}
+ for(const a of[aL,aR])M(.13,.55,.14,JK,0,-.26,0,null,a);
+ M(.46,.62,.28,JK,0,.31,0);M(.5,.5,.32,0xffd800,0,.36,0,{emissive:0x7a6400,emissiveIntensity:.55});
+ M(.52,.07,.33,0xe4e8ec,0,.24,0,{emissive:0x666666,emissiveIntensity:.35});M(.52,.07,.33,0xe4e8ec,0,.48,0,{emissive:0x666666,emissiveIntensity:.35});
+ const hd=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8),new THREE.MeshStandardMaterial({color:0xe0b08a,roughness:.8}));hd.position.y=.82;hd.castShadow=true;h.add(hd);
+ const hat=new THREE.Mesh(new THREE.SphereGeometry(.2,10,6,0,6.283,0,1.57),new THREE.MeshStandardMaterial({color:0xff7a00,roughness:.5}));hat.position.y=.85;h.add(hat);
+ h.add(lL,lR,aL,aR);h.userData={lL,lR,aL,aR};return h}
+function vestPose(h,sit,ph){const u=h.userData;if(sit){u.lL.rotation.x=u.lR.rotation.x=1.5;u.aL.rotation.x=u.aR.rotation.x=.9}else{const w=Math.sin(ph)*.6;u.lL.rotation.x=w;u.lR.rotation.x=-w;u.aL.rotation.x=-w*.8;u.aR.rotation.x=w*.8}}
+// Wegsuche der Raupen: nur markierte, offene Pistenfelder, nicht durch Gebäude
+const gB=new Uint8Array(V*V),gVis=new Int32Array(V*V),gPar=new Int32Array(V*V),gQ=new Int32Array(V*V);let gGen=0,gBT=0,gNeedT=0,gNeedV=false;
+const gXY=i=>({x:(i%V)*C-S/2,z:((i/V)|0)*C-S/2}),gCell=(x,z)=>{const a=Math.round((x+S/2)/C),b=Math.round((z+S/2)/C);return a<0||b<0||a>N||b>N?-1:b*V+a};
+function gBlk(i){const n=performance.now();if(n-gBT>12000){gB.fill(0);gBT=n}let b=gB[i];if(!b){const t=gXY(i);b=push(t,3.4)?2:1;gB[i]=b}return b===2}
+const gOk=i=>PI[i]&&!PC[i]&&!gBlk(i),gNeed=i=>PI[i]&&!PC[i]&&SN[i]>.3&&(GR[i]<.5||WR[i]>.3);
+const gPT=new Uint8Array(V*V);let gPTT=-1e9,gPTany=false;
+function gRefPT(){const n=performance.now();if(n-gPTT<2500)return;gPTT=n;gPT.fill(0);gPTany=false;for(let i=0;i<V*V;i++){if(SP[i]>.35){const x=i%V,z=(i/V)|0;for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const a=x+dx,b=z+dz;if(a<0||b<0||a>N||b>N)continue;const j=b*V+a;if(PI[j]&&!PC[j]){gPT[j]=1;gPTany=true}}}}}
+function gHasNeed(){const n=performance.now();if(n-gNeedT<2500)return gNeedV;gNeedT=n;gRefPT();gNeedV=gPTany;if(!gNeedV)for(let i=0;i<V*V;i++)if(gNeed(i)){gNeedV=true;break}return gNeedV}
+function gBfs(si,goal){gGen++;let qh=0,qt=0;gQ[qt++]=si;gVis[si]=gGen;gPar[si]=-1;
+ while(qh<qt){const i=gQ[qh++];if(i!==si&&goal(i)){const p=[];for(let k=i;k!==si;k=gPar[k])p.push(k);return p.reverse()}
+  const x=i%V,z=(i/V)|0;for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const jx=x+dx,jz=z+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const j=jz*V+jx;if(gVis[j]===gGen||!gOk(j))continue;if(dx&&dz&&(!gOk(z*V+jx)||!gOk(jz*V+x)))continue;gVis[j]=gGen;gPar[j]=i;gQ[qt++]=j}}
+ return null}
+// Raupen-Garage am tiefsten Pistenende (bei der untersten Talstation)
+let staffPark=null;
+function staffParkInit(){if(!staffPark){if(!lifts.length)return false;let lo=lifts[0];for(const l of lifts)if(hAt(l.A.x,l.A.z)<hAt(lo.A.x,lo.A.z))lo=l;
+  const ix=Math.round((lo.A.x+S/2)/C),iz=Math.round((lo.A.z+S/2)/C);let bd=1e9,bi=-1;
+  for(let dz=-20;dz<=20;dz++)for(let dx=-20;dx<=20;dx++){const jx=ix+dx,jz=iz+dz;if(jx<0||jz<0||jx>N||jz>N)continue;const i=jz*V+jx;if(!PI[i]||PC[i])continue;const d=Math.hypot(dx,dz);if(d<bd&&!gBlk(i)){bd=d;bi=i}}
+  if(bi<0)return false;const e=gXY(bi);let pick=null;
+  for(const r of[18,24,30,38])for(let k=0;k<16&&!pick;k++){const an=k/16*6.283,x=e.x+Math.cos(an)*r,z=e.z+Math.sin(an)*r;if(Math.abs(x)>S/2-30||Math.abs(z)>S/2-30)continue;
+   let ok=true;for(let dz=-8;dz<=8&&ok;dz+=4)for(let dx=-11;dx<=11;dx+=5.5){const px=x+dx,pz=z+dz,ii=gCell(px,pz);if(ii<0||PI[ii]){ok=false;break}const t={x:px,z:pz};if(push(t,2)){ok=false;break}}
+   if(ok&&Math.abs(hAt(x+10,z)-hAt(x-10,z))<3&&Math.abs(hAt(x,z+8)-hAt(x,z-8))<3)pick={x,z}}
+  if(!pick)pick={x:e.x+20,z:e.z};staffParkSet(pick.x,pick.z,e.x,e.z,bi)}
+ return true}
+function staffParkSet(x,z,ex,ez,ei){const dx=x-ex,dz=z-ez,L=Math.hypot(dx,dz)||1;staffPark={x,z,ex,ez,ei,dx:dx/L,dz:dz/L,built:false};
+ const g2=new THREE.Group(),th=Math.atan2(dx/L,dz/L),B=(w,h,d,c,px,py,pz,o)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.8},o||{})));m.position.set(px,py,pz);m.castShadow=true;m.receiveShadow=true;g2.add(m)};
+ B(21,.5,15,0x6b6f75,0,-.2,0);B(21,5.4,.6,0x8c8f94,0,2.7,7.2);B(21.6,.4,13,0x3a3d42,0,5.6,.9);B(21.6,.5,.4,0xffd400,0,5.25,-5.5,{emissive:0x665500,emissiveIntensity:.4});
+ for(const sx of[-9.9,9.9])for(const sz of[-5.3,6.7])B(.5,5.4,.5,0x55595f,sx,2.7,sz);
+ for(const sx of[-6,0,6])B(3,.02,9.5,0xf2c200,sx,.07,0);
+ g2.position.set(x,hAt(x,z)+.1,z);g2.rotation.y=th;scene.add(g2);staffPark.mesh=g2;staffPark.built=true}
+function staffSlot(k){const o=[0,6,-6][k%3],P=staffPark;return{x:P.x+P.dz*o,z:P.z-P.dx*o}}
+function groomAt(x,z,dt){const cx=((x+S/2)/C)|0,cz=((z+S/2)/C)|0;for(let b=cz-3;b<=cz+3;b++)for(let a=cx-3;a<=cx+3;a++){if(a<0||b<0||a>N||b>N||Math.hypot(a-cx,b-cz)*C>4.5)continue;const i=b*V+a;if(SN[i]>.3&&PI[i]){GR[i]=Math.min(1,GR[i]+dt*5);if(WR[i]>0){if(WR[i]>=1)worn--;WR[i]=0}}}}
+function gPlan(s,work,sl){const ci=gCell(s.x,s.z),onPi=ci>=0&&PI[ci]&&!PC[ci],P=staffPark;s.path=[];
+ if(work){if(onPi){gRefPT();let p=gPTany?gBfs(ci,i=>gPT[i]===1):null;if(p){s.path=p.map(gXY);s.mode='push';return}p=gBfs(ci,gNeed);if(p){s.path=p.map(gXY);s.mode='work';return}s.rest=30}
+  else if(gHasNeed()&&Math.hypot(s.x-sl.x,s.z-sl.z)<30){s.path=[{x:P.ex,z:P.ez}];s.mode='access';return}else s.rest=6}
+ if(onPi&&ci!==P.ei&&PI[P.ei]){const p=gBfs(ci,i=>i===P.ei);if(p){s.path=p.map(gXY).concat([sl]);s.mode='home';return}}
+ s.path=[sl];s.mode='home'}
+function staffFind(){return null}
+function updStaff(dt){if(!staff.length&&staffGunWant===null)return;const h=hourNow(),night=h>=17||h<8||wxK==='thaw';
  if(cntStaff('snow')){if(staffGunWant!==night){staffGunWant=night;guns.forEach(u=>{u.on=night;u.pts.visible=night})}}else staffGunWant=null;
- const work=h>=16.5||h<8||!resOpen,hb=(typeof BUE!=='undefined'&&BUE)?BUE:{x:-26,z:473};let gi=0;
- for(const s of staff){if(s.t!=='groom')continue;const home={x:hb.x+34+gi*9,z:hb.z+18};gi++;
-  if(!s.m){const m=VG.raupe.clone(true);const ls=[];m.traverse(o=>{if(o.isLight)ls.push(o)});ls.forEach(o=>o.parent&&o.parent.remove(o));m.visible=true;scene.add(m);s.m=m;s.x=home.x;s.z=home.z}
-  let tx=home.x,tz=home.z,go=false;
-  if(work){if(s.tg!=null&&(GR[s.tg]>=.85||!PI[s.tg]||PC[s.tg]||SN[s.tg]<=.3)){s.tg=null}
-   if(s.tg!=null){s.tt+=dt;if(s.tt>25){s.bx=(s.tg%V)*C-S/2;s.bz=((s.tg/V)|0)*C-S/2;s.tg=null}}
-   s.scan-=dt;if(s.tg==null&&s.scan<=0){s.scan=.7;s.tg=staffFind(s);s.tt=0}
-   if(s.tg!=null){tx=(s.tg%V)*C-S/2;tz=((s.tg/V)|0)*C-S/2;go=true}}
-  const dx=tx-s.x,dz=tz-s.z,dist=Math.hypot(dx,dz);let sp=0;
-  if(go||dist>3){const want=Math.atan2(-dx,-dz);let d=want-s.yaw;while(d>Math.PI)d-=6.283;while(d<-Math.PI)d+=6.283;s.yaw+=Math.max(-1.6*dt,Math.min(1.6*dt,d));sp=Math.abs(d)<.6?(go?6.5:5):1.5;if(!go&&dist<8)sp=Math.min(sp,2)}
+ const work=h>=16.5||h<8||!resOpen,hb=(typeof BUE!=='undefined'&&BUE)?BUE:{x:-26,z:473},VH=VEH.raupe;let gi=0;
+ for(const s of staff){
+  if(s.t!=='groom'){ // Fußgänger mit Warnweste: Techniker läuft zu den Kanonen, Marketing flaniert beim Büro
+   if(!s.m){s.m=mkVest();scene.add(s.m);s.x=hb.x+8+Math.random()*6;s.z=hb.z+10+Math.random()*6;s.ph=Math.random()*6;s.wt=0;s.tx=s.x;s.tz=s.z}
+   s.wt-=dt;if(s.wt<=0||Math.hypot(s.tx-s.x,s.tz-s.z)<1){s.wt=8+Math.random()*10;if(s.t==='snow'&&guns.length){const u=guns[(Math.random()*guns.length)|0];s.tx=u.x+3;s.tz=u.z+3}else{s.tx=hb.x+(Math.random()-.5)*34;s.tz=hb.z+6+Math.random()*22}}
+   const dx=s.tx-s.x,dz=s.tz-s.z,d=Math.hypot(dx,dz);if(d>1){s.x+=dx/d*1.5*dt;s.z+=dz/d*1.5*dt;push(s,.6);s.ph+=dt*7;s.yaw=Math.atan2(-dx,-dz)}
+   vestPose(s.m,false,d>1?s.ph:0);s.m.position.set(s.x,hAt(s.x,s.z)+.9,s.z);s.m.rotation.y=s.yaw||0;continue}
+  if(!staffParkInit())continue;const sl=staffSlot(gi);gi++;
+  if(!s.m){const m=VG.raupe.clone(true),ls=[];m.traverse(o=>{if(o.isLight)ls.push(o)});ls.forEach(o=>o.parent&&o.parent.remove(o));
+   const ki=VG.raupe.children.indexOf(cabIn);if(ki>=0)m.children[ki].visible=false;s.till=m.children[VG.raupe.children.indexOf(till)];s.bl=m.children[VG.raupe.children.indexOf(blade)];
+   const hm=mkVest();vestPose(hm,true);hm.position.set(0,2.1,-.9);m.add(hm);m.visible=true;scene.add(m);s.m=m;s.x=sl.x;s.z=sl.z;s.yaw=Math.atan2(-staffPark.dx,-staffPark.dz);s.path=[];s.mode='home';s.rest=0;s.ls={x:1e9,z:0}}
+  if(!work&&(s.mode==='work'||s.mode==='push'))s.path=[];
+  if(s.rest>0)s.rest-=dt;
+  if(!s.path.length){const atSlot=Math.hypot(s.x-sl.x,s.z-sl.z)<2.5;if(atSlot&&(!work||s.rest>0||!gHasNeed())){}else gPlan(s,work,sl)}
+  let sp=0,tdx=0,tdz=0,wy=s.yaw;const wp=s.path[0];
+  if(wp){tdx=wp.x-s.x;tdz=wp.z-s.z;const d=Math.hypot(tdx,tdz),last=s.path.length===1;
+   if(d<(last&&s.mode==='home'?.9:3)){s.path.shift()}else{wy=Math.atan2(-tdx,-tdz);let df=wy-s.yaw;while(df>Math.PI)df-=6.283;while(df<-Math.PI)df+=6.283;s.yaw+=Math.max(-1.7*dt,Math.min(1.7*dt,df));sp=Math.abs(df)<.7?(s.mode==='work'?5.5:s.mode==='push'?4.5:7):1.6;if(last)sp=Math.min(sp,Math.max(1.4,d*.7))}}
+  else{const py=Math.atan2(-staffPark.dx,-staffPark.dz);let df=py-s.yaw;while(df>Math.PI)df-=6.283;while(df<-Math.PI)df+=6.283;s.yaw+=Math.max(-1*dt,Math.min(1*dt,df))}
   s.v+=(sp-s.v)*Math.min(1,dt*2);const f=Math.sin(s.yaw),h2=Math.cos(s.yaw),fx=-f,fz=-h2,rx=h2,rz=-f;
-  s.x=cl(s.x+fx*s.v*dt,-S/2+6,S/2-6);s.z=cl(s.z+fz*s.v*dt,-S/2+6,S/2-6);if(push(s,2.4))s.v*=.6;
-  if(!go&&dist<3){s.v*=.9}
-  const g=s.m;g.position.set(s.x,hAt(s.x,s.z)+.1,s.z);g.rotation.y=s.yaw;g.rotation.x=Math.atan2(hAt(s.x+fx*3,s.z+fz*3)-hAt(s.x-fx*3,s.z-fz*3),6);g.rotation.z=Math.atan2(hAt(s.x+rx*2,s.z+rz*2)-hAt(s.x-rx*2,s.z-rz*2),4);
-  if(go&&s.v>.3){const bx=s.x-fx*4.5,bz=s.z-fz*4.5,cx=((bx+S/2)/C)|0,cz=((bz+S/2)/C)|0;
-   for(let dz2=-3;dz2<=3;dz2++)for(let dx2=-3;dx2<=3;dx2++){const a=cx+dx2,b=cz+dz2;if(a<0||b<0||a>N||b>N||Math.hypot(dx2,dz2)*C>4.5)continue;const i=b*V+a;if(SN[i]>.3&&PI[i]){GR[i]=Math.min(1,GR[i]+dt*2.5);if(WR[i]>0){if(WR[i]>=1)worn--;WR[i]=0}}}
-   dirtyC=true;s.gt-=dt;if(s.gt<=0){s.gt=.2;groomTr(bx,bz,3.4)}}}}
+  s.x=cl(s.x+fx*s.v*dt,-S/2+6,S/2-6);s.z=cl(s.z+fz*s.v*dt,-S/2+6,S/2-6);if(s.mode!=='home'&&push(s,2.2))s.v*=.7;
+  const g3=s.m;g3.position.set(s.x,hAt(s.x,s.z)+.1,s.z);g3.rotation.y=s.yaw;g3.rotation.x=Math.atan2(hAt(s.x+fx*3,s.z+fz*3)-hAt(s.x-fx*3,s.z-fz*3),6);g3.rotation.z=Math.atan2(hAt(s.x+rx*2,s.z+rz*2)-hAt(s.x-rx*2,s.z-rz*2),4);
+  const ci=gCell(s.x,s.z),tillOn=s.mode==='work'&&s.v>.3&&ci>=0&&PI[ci]&&!PC[ci]&&SN[ci]>.3;
+  if(s.till)s.till.rotation.x+=tillOn?dt*14:0;
+  if(s.bl)s.bl.position.y+=((s.mode==='push'?0:1.4)-s.bl.position.y)*Math.min(1,dt*5);
+  if(s.mode==='push'&&s.v>.4){const bx=s.x+fx*5.4,bz=s.z+fz*5.4,cx=((bx+S/2)/C)|0,cz=((bz+S/2)/C)|0,sx=Math.round(fx*1.4),sz=Math.round(fz*1.4);let mv=0;
+   for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const a=cx+dx,b=cz+dz;if(a<2||b<2||a>=N-1||b>=N-1||Math.hypot(dx,dz)*C>7)continue;const i=b*V+a;if(SP[i]>.02){const mm=SP[i]*Math.min(1,dt*3);SP[i]-=mm;SP[i+sz*V+sx]+=mm*.96;mv=1}}
+   if(mv)dirtyG=true}
+  if(tillOn){const bx=s.x-fx*4.5,bz=s.z-fz*4.5;groomAt(bx,bz,dt);groomAt(s.x,s.z,dt);dirtyC=true;s.gt-=dt;if(s.gt<=0){s.gt=.2;groomTr(bx,bz,3.4)}}
+  if(s.v>.3&&Math.hypot(s.x-s.ls.x,s.z-s.ls.z)>.5){s.ls.x=s.x;s.ls.z=s.z;g3.updateMatrixWorld(true);if(tillOn)stamp(trC,0,4.4,1,g3);else{stamp(trL,-VH.tr,0,undefined,g3);stamp(trR,VH.tr,0,undefined,g3)}}}}
 // ---------- Büro-Computer (Oberfläche) ----------
 let pcH='';
 function openPC(){$('pcui').style.display='flex';pcApp='desk';renderPC(true)}
@@ -525,7 +600,7 @@ const tireT=mkT(x=>{const gr=x.createLinearGradient(0,0,64,0);gr.addColorStop(0,
 const tireN=nmap((u,v)=>-1.1*(1-Math.pow(Math.abs(2*u-1),6))+.9*Math.max(0,Math.sin((v*10+Math.abs(2*u-1)*2.2)*Math.PI*2)));
 const trW=mkTr(1.1,tireT,tireN,1);trW.m.material.normalScale.set(2.4,2.4);
 function groomTr(px,pz,r){let ch=false;for(const T of [trL,trR,trW,skT,bdT]){const k=Math.min(T.i,T.n);for(let s=0;s<k;s++){const q=T.rec[s];if(!q||q[2])continue;if((q[0]-px)*(q[0]-px)+(q[1]-pz)*(q[1]-pz)<r*r){mt4.makeScale(0,0,0);T.m.setMatrixAt(s,mt4);q[2]=1;ch=true}}if(ch)T.m.instanceMatrix.needsUpdate=true}}
-function stamp(T,lx,lz,sx){mt4.makeScale(sx||1,1,1).setPosition(lx,.04,lz).premultiply(g.matrixWorld);const sl=T.i%T.n;T.m.setMatrixAt(sl,mt4);T.rec[sl]=[mt4.elements[12],mt4.elements[14]];T.i++;T.m.count=Math.min(T.i,T.n);T.m.instanceMatrix.needsUpdate=true}
+function stamp(T,lx,lz,sx,W){mt4.makeScale(sx||1,1,1).setPosition(lx,.04,lz).premultiply((W||g).matrixWorld);const sl=T.i%T.n;T.m.setMatrixAt(sl,mt4);T.rec[sl]=[mt4.elements[12],mt4.elements[14]];T.i++;T.m.count=Math.min(T.i,T.n);T.m.instanceMatrix.needsUpdate=true}
 function mkSk(w,L,n,tex,nm){const m=new THREE.InstancedMesh(new THREE.PlaneGeometry(w,L).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({map:tex,normalMap:nm,normalScale:new THREE.Vector2(1.8,1.8),roughness:1,metalness:0,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),n);m.count=0;m.frustumCulled=false;m.renderOrder=1;m.receiveShadow=true;scene.add(m);return{m,i:0,n,rec:[]}}
 const skT=mkSk(.7,3,20000,mkT(x=>{x.fillStyle='rgba(255,255,255,.9)';x.fillRect(12,0,8,64);x.fillRect(44,0,8,64)}),nmap(u=>-(Math.exp(-Math.pow((u-.28)*14,2))+Math.exp(-Math.pow((u-.72)*14,2))))),
 bdT=mkSk(.45,3,20000,mkT(x=>{x.fillStyle='rgba(255,255,255,.9)';x.fillRect(20,0,24,64)}),nmap(u=>-Math.exp(-Math.pow((u-.5)*5,2))));
@@ -894,7 +969,7 @@ function calcDay(){let gp=0;for(let i=0;i<V*V;i++)if(PI[i]&&!PC[i]&&GR[i]>.5&&SN
  return{gp,guests,inc,exp,eat,extra}}
 function newDay(){const r=calcDay(),{gp,guests,inc,exp}=r;money+=r.extra-exp;rep=gp?`${guests} Gäste`:'keine Gäste';
  for(let i=0;i<V*V;i++)if(GR[i]>0)GR[i]*=PI[i]&&guests?.85:.97;dirtyC=true;
- showSum(day,r);ticketsToday=0;revToday=0;day++}
+ showSum(day,r);ticketsToday=0;revToday=0;day++;rollWeather()}
 
 // ---------- Hauptschleife ----------
 const fv=new THREE.Vector3(),tmp=new THREE.Vector3();let last=performance.now(),hudT=0,tm=0;
@@ -933,7 +1008,7 @@ const fx=-f,fz=-h2,rx=h2,rz=-f;
   for(let dz=-6;dz<=6;dz++)for(let dx=-6;dx<=6;dx++){const a=cx+dx,b=cz+dz;if(a<0||b<0||a>N||b>N)continue;const d=Math.hypot(dx,dz)*C;if(d<14)SN[b*V+a]=Math.min(1,SN[b*V+a]+dt*.012*(1-d/14))}
   for(let k=0;k<36;k++){const t=((tm*.8+k/36+u.seed)%1);const dd=1+t*14;u.pp[3*k]=u.x+fx*dd+Math.sin(k*7.3)*1.2*t;u.pp[3*k+1]=u.y+4.2+t*7-t*t*13;u.pp[3*k+2]=u.z+fz*dd+Math.cos(k*5.1)*1.2*t}
   u.pts.geometry.attributes.position.needsUpdate=true;dirtyC=true;{const ax=((u.x+fx*12+S/2)/C)|0,az=((u.z+fz*12+S/2)/C)|0;for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const a=ax+dx,b=az+dz;if(a<1||b<1||a>=N||b>=N)continue;const d=Math.hypot(dx,dz)*C;if(d<8){const i=b*V+a;SP[i]=Math.min(7,SP[i]+dt*.05*(1-d/8))}}if(Math.floor(tm*2)!==Math.floor((tm-dt)*2))dirtyG=true}});
- updLift(dt);updStaff(dt);
+ updLift(dt);updStaff(dt);updWeather(dt);
  updTown(dt);dayT+=dt;if(dayT>=DAY){dayT-=DAY;newDay()}updSound(dt);
  if(dirtyG&&now-lastG>80){syncPos();dirtyG=false;dirtyC=true;lastG=now}
  if(dirtyC&&now-lastC>160){paint();dirtyC=false;lastC=now}
@@ -951,7 +1026,7 @@ const fx=-f,fz=-h2,rx=h2,rz=-f;
  else if(onFoot){tmp.set(P.x+Math.sin(P.yaw+cOff)*6,P.y+3.2+cPit*5,P.z+Math.cos(P.yaw+cOff)*6);cam.position.lerp(tmp,.15);cam.lookAt(P.x,P.y+1.4,P.z)}
  else{tmp.set(G.x+Math.sin(G.yaw+cOff)*VH.cd,y+VH.ch+cPit*8,G.z+Math.cos(G.yaw+cOff)*VH.cd);cam.position.lerp(tmp,.12);cam.lookAt(G.x,y+1.5,G.z)}
  if(now-hudT>250){hudT=now;let s=0,c=0;for(let i=0;i<V*V;i+=7){if(PI[i]){c++;s+=SN[i]}}
-  $('hMoney').textContent='💶 '+Math.round(money).toLocaleString('de-DE')+' €';{const t=(6+dayT/DAY*24)%24;$('hDay').textContent='Tag '+day+' · '+String(t|0).padStart(2,'0')+':'+String(((t%1)*60)|0).padStart(2,'0')}$('hFuel').textContent='⛽ '+Math.round(G.fuel)+'%';fb.scale.x=Math.max(.02,G.fuel/100);{const v=Math.abs(G.v);$('hSpd').textContent=VH.ic+' '+Math.round(v*3.6)+' km/h';$('gTxt').textContent=G.v<-.3?'R':v<.3&&!G.thr?'N':'Gang '+G.gear;$('gp').style.display=onFoot?'none':'flex'}updFuel();updBuro();updOffice();
+  $('hMoney').textContent='💶 '+Math.round(money).toLocaleString('de-DE')+' €';{const t=(6+dayT/DAY*24)%24;$('hDay').textContent='Tag '+day+' '+WX[wxK].ic+' · '+String(t|0).padStart(2,'0')+':'+String(((t%1)*60)|0).padStart(2,'0')}$('hFuel').textContent='⛽ '+Math.round(G.fuel)+'%';fb.scale.x=Math.max(.02,G.fuel/100);{const v=Math.abs(G.v);$('hSpd').textContent=VH.ic+' '+Math.round(v*3.6)+' km/h';$('gTxt').textContent=G.v<-.3?'R':v<.3&&!G.thr?'N':'Gang '+G.gear;$('gp').style.display=onFoot?'none':'flex'}updFuel();updBuro();updOffice();
   $('hSnow').textContent='❄ Piste '+(c?Math.round(s/c*100)+'%':'–');$('hRep').textContent='🎫 '+agents.filter(a=>a.pass).length+' Gäste'}
  R.render(scene,cam)}
 // ---------- Flutlicht & Nacht ----------
@@ -1022,11 +1097,11 @@ const KEY='skigebiet_v1';
 const enc=a=>{const u=new Uint8Array(a.buffer,a.byteOffset,a.byteLength);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
 const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer)};
 function save(quiet){if(typeof started!=='undefined'&&!started)return;try{const sp16=new Int16Array(V*V),h16=new Int16Array(V*V),s8=new Uint8Array(V*V),g8=new Uint8Array(V*V);for(let i=0;i<V*V;i++){h16[i]=Math.round(H[i]*100);sp16[i]=Math.round(SP[i]*100);s8[i]=Math.round(SN[i]*255);g8[i]=Math.round(GR[i]*255)}
- (snapCap?(v=>{snapStr=v}):(v=>localStorage.setItem(KEY,v)))(JSON.stringify({ver:2,money,day,wood,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),FZ:enc(FZ),tanks:tanks.map(r=>[r.x,r.z]),parks:parks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0,u.dir||0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),tc:tanks.map(t=>{const b=BUILT.find(q=>q.it===t);return b?b.cost:0}),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon||0,l.stop?1:0,l.gon&&l.pylH?l.pylH():0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z]),ends:ends.map(e=>[e.x,e.z,e.ux,e.uz,e.hw]),staff:staff.map(q=>[q.t,q.n]),res:[resOpen?1:0,skiPrice,ticketsToday,Math.round(revToday)]}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
+ (snapCap?(v=>{snapStr=v}):(v=>localStorage.setItem(KEY,v)))(JSON.stringify({ver:2,money,day,wood,G:{x:G.x,z:G.z,yaw:G.yaw,fuel:G.fuel,veh:G.veh},F:Object.fromEntries(Object.keys(FL).map(k=>[k,[FL[k].x,FL[k].z,FL[k].yaw,FL[k].fuel]])),K:enc(PC),FZ:enc(FZ),tanks:tanks.map(r=>[r.x,r.z]),parks:parks.map(r=>[r.x,r.z]),H:enc(h16),SP:enc(sp16),S:enc(s8),R:enc(g8),I:enc(PI),guns:guns.map(u=>[u.x,u.z,u.on?1:0,u.dir||0]),rests:rests.map(r=>[r.x,r.z]),lamps:lamps.map(l=>[l.x,l.z]),tc:tanks.map(t=>{const b=BUILT.find(q=>q.it===t);return b?b.cost:0}),lifts:lifts.map(l=>[l.A.x,l.A.z,l.B.x,l.B.z,l.gon||0,l.stop?1:0,l.gon&&l.pylH?l.pylH():0]),decos:decos.map(d=>[d.t,d.x,d.z]),pumps:pumps.map(r=>[r.x,r.z]),trafos:trafos.map(r=>[r.x,r.z]),roads:roads.map(r=>[r.a.x,r.a.z,r.b.x,r.b.z]),alms:alms.map(r=>[r.x,r.z]),ends:ends.map(e=>[e.x,e.z,e.ux,e.uz,e.hw]),staff:staff.map(q=>[q.t,q.n]),sp:staffPark?[staffPark.x,staffPark.z,staffPark.ex,staffPark.ez,staffPark.ei]:null,wx:[wxK,dayMul,dayLow],res:[resOpen?1:0,skiPrice,ticketsToday,Math.round(revToday)]}));if(!quiet)toast('💾 Gespeichert')}catch(e){if(!quiet)toast('Speichern nicht möglich')}}
 function load(){try{const j=localStorage.getItem(KEY);if(!j)return;const d=JSON.parse(j);loading=true;
  const kk=d.K?dec(d.K,Uint8Array):null,h=dec(d.H,Int16Array),s=dec(d.S,Uint8Array),r=dec(d.R,Uint8Array),p=dec(d.I,Uint8Array);
  for(let i=0;i<V*V;i++){H[i]=h[i]/100;SN[i]=s[i]/255;GR[i]=r[i]/255;PI[i]=p[i];PC[i]=kk?kk[i]:0}if(d.FZ){const fz=dec(d.FZ,Uint8Array);for(let i=0;i<V*V;i++)FZ[i]=fz[i]}if(d.ver!==2)for(let iz=0;iz<V;iz++){const b=cl((iz*C-S/2-360)/50,0,1),sb=b*b*(3-2*b);if(sb>0)for(let ix=0;ix<V;ix++){const i=iz*V+ix;H[i]=H[i]*(1-sb)+3*sb}}if(d.SP){const q=dec(d.SP,Int16Array);for(let i=0;i<V*V;i++)SP[i]=q[i]/100}
- (d.staff||[]).forEach(a=>hireStaff(a[0],a[1],true));if(d.res){resOpen=!!d.res[0];skiPrice=d.res[1]||25;ticketsToday=d.res[2]||0;revToday=d.res[3]||0}(d.ends||[]).forEach(a=>ends.push({x:a[0],z:a[1],ux:a[2],uz:a[3],hw:a[4]}));(d.pumps||[]).forEach(a=>addPump({x:a[0],z:a[1]}));(d.trafos||[]).forEach(a=>addTrafo({x:a[0],z:a[1]}));
+ (d.staff||[]).forEach(a=>hireStaff(a[0],a[1],true));if(d.wx&&WX[d.wx[0]]){wxK=d.wx[0];dayMul=d.wx[1]||1;dayLow=d.wx[2]||.4}if(d.sp&&!staffPark)staffParkSet(d.sp[0],d.sp[1],d.sp[2],d.sp[3],d.sp[4]);if(d.res){resOpen=!!d.res[0];skiPrice=d.res[1]||25;ticketsToday=d.res[2]||0;revToday=d.res[3]||0}(d.ends||[]).forEach(a=>ends.push({x:a[0],z:a[1],ux:a[2],uz:a[3],hw:a[4]}));(d.pumps||[]).forEach(a=>addPump({x:a[0],z:a[1]}));(d.trafos||[]).forEach(a=>addTrafo({x:a[0],z:a[1]}));
  (d.tanks||[]).forEach(a=>addTank({x:a[0],z:a[1]},true));tanks.forEach((t,i)=>{const b=BUILT.find(q=>q.it===t);if(b)b.cost=d.tc?(d.tc[i]||0):(i>0?2500:0)});(d.parks||[]).forEach(a=>addPark({x:a[0],z:a[1]}));
  d.guns.forEach(a=>{addGun({x:a[0],z:a[1]});const u=guns[guns.length-1];u.dir=a[3]||0;u.m.rotation.y=u.dir;if(a[2]){u.on=true;u.pts.visible=true}});
  d.rests.forEach(a=>addRest({x:a[0],z:a[1]}));(d.lamps||[]).forEach(a=>addLamp({x:a[0],z:a[1]}));
@@ -1054,4 +1129,4 @@ let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 try{const c=JSON.parse(sessionStorage.getItem('sk_cam')||'null');if(c){sessionStorage.removeItem('sk_cam');bf.x=c[0];bf.z=c[1];bd=c[2];$('bBuild').onclick();const ct=CATS.find(x=>x[2].includes(c[3]));if(ct)showCat(ct[0]);const tb=document.querySelector('#row [data-t="'+c[3]+'"]');if(tb)tb.click()}}catch(_){}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.14</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.15</div></body></html>
