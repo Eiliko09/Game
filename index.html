@@ -202,7 +202,7 @@ function skiStep(a,dt){const q=a.pq;
   step=cl(angDiff(des,a.yw)*Math.min(1,dt*4),-2.6*dt,2.6*dt);a.yw+=step}
  a.tr+=(step/Math.max(dt,.001)-a.tr)*Math.min(1,dt*6);
  const sn=Math.sin(a.yw),cs=Math.cos(a.yw),sl=(hAt(a.x,a.z)-hAt(a.x+sn*3,a.z+cs*3))/3;
- if(coast)a.v=Math.max(0,a.v-5*dt);else a.v=cl(a.v+(15*sl-.22*a.v-.4)*dt,3.5,15);
+ if(coast)a.v=Math.max(0,a.v-5*dt);else{const gr=GR[Math.round((a.z+S/2)/C)*V+Math.round((a.x+S/2)/C)]||0;a.v=cl(a.v+(15*sl-(.22+.1*(1-gr))*a.v-.4-.6*(1-gr))*dt,3.5,15*(.72+.28*gr))}
  a.cp+=dt*a.v/a.cw*6.283;
  const ox=a.x,oz=a.z;a.x+=sn*a.v*dt;a.z+=cs*a.v*dt;
  if(!onP(a.x,a.z)){a.x=ox;a.z=oz;if(coast)a.v=0;else{a.v*=.6;a.bad++;if(q.length){a.yw=Math.atan2(q[0].x-a.x,q[0].z-a.z);a.cp+=3.14;if(a.bad>12){a.x=q[0].x;a.z=q[0].z;a.bad=0}}}}else a.bad=0;
@@ -272,11 +272,13 @@ const STAFF_T={groom:{ic:'🚜',n:'Pistenfahrer',w:300,fee:8000,d:'Fährt selbst
 let staff=[],staffId=1,staffGunWant=null;
 // ---------- Wetter & Tagesschwankung ----------
 const WX={sun:{ic:'☀',n:'Sonnig',m:1.15,d:-.00015},cloud:{ic:'⛅',n:'Bewölkt',m:1,d:0},snow:{ic:'🌨',n:'Schneefall',m:1.05,d:.0007},thaw:{ic:'🌧',n:'Tauwetter',m:.8,d:-.0005}};
-let wxK='cloud',dayMul=1,dayLow=.4,wxAcc=0,wxCol=0;
+let wxK='cloud',dayMul=1,dayLow=.4,wxAcc=0,wxCol=0,wxTr=0;
 function rollWeather(){const r=Math.random();wxK=r<.28?'sun':r<.58?'cloud':r<.8?'snow':'thaw';dayMul=.65+Math.random()*.7;dayLow=.2+Math.random()*.45;
  toast(WX[wxK].ic+' '+WX[wxK].n+(dayMul>1.15?' – viel Andrang erwartet':dayMul<.85?' – ruhiger Tag erwartet':''))}
-function updWeather(dt){wxAcc+=dt;if(wxAcc<1)return;const d=WX[wxK].d*wxAcc;wxAcc=0;if(!d)return;
- for(let i=0;i<V*V;i++){const v=SN[i];if(d>0){if(v<1)SN[i]=Math.min(1,v+d)}else if(v>.25){SN[i]=Math.max(.25,v+d*cl(1.3-H[i]/70,.4,1.3))}}
+function coverTr(f){for(const T of [trL,trR,trW,skT,bdT,trC]){const k=Math.min(T.i,T.n);let ch=false;for(let q0=0;q0<k;q0++){const q=T.rec[q0];if(!q||q[2]||Math.random()>f)continue;mt4.makeScale(0,0,0);T.m.setMatrixAt(q0,mt4);q[2]=1;ch=true}if(ch)T.m.instanceMatrix.needsUpdate=true}}
+function updWeather(dt){wxAcc+=dt;if(wxAcc<1)return;const a=wxAcc,d=WX[wxK].d*a,snowing=wxK==='snow';wxAcc=0;if(!d)return;
+ for(let i=0;i<V*V;i++){const v=SN[i];if(d>0){if(v<1)SN[i]=Math.min(1,v+d);if(snowing&&GR[i]>0)GR[i]=Math.max(0,GR[i]-.0011*a)}else if(v>.25){SN[i]=Math.max(.25,v+d*cl(1.3-H[i]/70,.4,1.3))}}
+ if(snowing){wxTr+=a;if(wxTr>=5){wxTr=0;coverTr(.03)}}
  wxCol++;if(wxCol>=3){wxCol=0;dirtyC=true}}
 
 const cntStaff=t=>staff.filter(q=>q.t===t).length,staffCost=()=>staff.reduce((a,q)=>a+STAFF_T[q.t].w,0);
@@ -1005,7 +1007,7 @@ const fx=-f,fz=-h2,rx=h2,rz=-f;
   for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const a=cx+dx,b=cz+dz;if(a<2||b<2||a>=N-1||b>=N-1||Math.hypot(dx,dz)*C>7)continue;const i=b*V+a;if(SP[i]>.02){const m=SP[i]*Math.min(1,dt*3);SP[i]-=m;SP[i+sz*V+sx]+=m*.96;mv=1}}
   if(mv){dirtyG=true}}
  guns.forEach(u=>{if(!u.on)return;const fx=Math.sin(u.dir||0),fz=Math.cos(u.dir||0),cx=((u.x+fx*8+S/2)/C)|0,cz=((u.z+fz*8+S/2)/C)|0;
-  for(let dz=-6;dz<=6;dz++)for(let dx=-6;dx<=6;dx++){const a=cx+dx,b=cz+dz;if(a<0||b<0||a>N||b>N)continue;const d=Math.hypot(dx,dz)*C;if(d<14)SN[b*V+a]=Math.min(1,SN[b*V+a]+dt*.012*(1-d/14))}
+  for(let dz=-6;dz<=6;dz++)for(let dx=-6;dx<=6;dx++){const a=cx+dx,b=cz+dz;if(a<0||b<0||a>N||b>N)continue;const d=Math.hypot(dx,dz)*C;if(d<14){const j=b*V+a;SN[j]=Math.min(1,SN[j]+dt*.012*(1-d/14));if(GR[j]>0)GR[j]=Math.max(0,GR[j]-dt*.05*(1-d/14))}}
   for(let k=0;k<36;k++){const t=((tm*.8+k/36+u.seed)%1);const dd=1+t*14;u.pp[3*k]=u.x+fx*dd+Math.sin(k*7.3)*1.2*t;u.pp[3*k+1]=u.y+4.2+t*7-t*t*13;u.pp[3*k+2]=u.z+fz*dd+Math.cos(k*5.1)*1.2*t}
   u.pts.geometry.attributes.position.needsUpdate=true;dirtyC=true;{const ax=((u.x+fx*12+S/2)/C)|0,az=((u.z+fz*12+S/2)/C)|0;for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const a=ax+dx,b=az+dz;if(a<1||b<1||a>=N||b>=N)continue;const d=Math.hypot(dx,dz)*C;if(d<8){const i=b*V+a;SP[i]=Math.min(7,SP[i]+dt*.05*(1-d/8))}}if(Math.floor(tm*2)!==Math.floor((tm-dt)*2))dirtyG=true}});
  updLift(dt);updStaff(dt);updWeather(dt);
@@ -1129,4 +1131,4 @@ let started=false;
 try{load();if(!tanks.length)addTank({x:G.x+18,z:G.z-10},true);mkBuro();setVeh(G.veh);initPark();started=true;sessionStorage.removeItem('sk_reload')}catch(e){console.error('Start-Fehler',e);window.__diagBox&&window.__diagBox('Start: '+e.message)}
 try{const c=JSON.parse(sessionStorage.getItem('sk_cam')||'null');if(c){sessionStorage.removeItem('sk_cam');bf.x=c[0];bf.z=c[1];bd=c[2];$('bBuild').onclick();const ct=CATS.find(x=>x[2].includes(c[3]));if(ct)showCat(ct[0]);const tb=document.querySelector('#row [data-t="'+c[3]+'"]');if(tb)tb.click()}}catch(_){}
 cam.position.set(0,12,510);requestAnimationFrame(loop);
-</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.15</div></body></html>
+</script><div style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);font:10px monospace;color:#000;opacity:.55;pointer-events:none;z-index:50">1.16</div></body></html>
